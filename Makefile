@@ -21,6 +21,10 @@ deps:
 lint:
 	golangci-lint run
 
+.PHONY: run
+run:
+	go run ./cmd/app
+
 .PHONY: test
 test:
 	go test -cover ./...
