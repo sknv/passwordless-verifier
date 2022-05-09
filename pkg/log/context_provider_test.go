@@ -21,8 +21,17 @@ func TestExtract1(t *testing.T) {
 	}{
 		{
 			name: "when there is no logger it returns an empty one",
-			want: func(t assert.TestingT, actual interface{}, msgAndArgs ...any) bool {
+			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
 				return assert.Equal(t, _nullLogger, actual, msgAndArgs...)
+			},
+		},
+		{
+			name: "when there are no fields it returns a provided logger",
+			args: args{
+				logger: L(),
+			},
+			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
+				return assert.Equal(t, L(), actual, msgAndArgs...)
 			},
 		},
 		{
@@ -33,7 +42,7 @@ func TestExtract1(t *testing.T) {
 					"key": "value",
 				},
 			},
-			want: func(t assert.TestingT, actual interface{}, msgAndArgs ...any) bool {
+			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
 				return assert.NotEqual(t, _nullLogger, actual, msgAndArgs...)
 			},
 		},

@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/sknv/passwordless-verifier/pkg/application"
+	"github.com/sknv/passwordless-verifier/pkg/http/server"
 	"github.com/sknv/passwordless-verifier/pkg/log"
 	"github.com/sknv/passwordless-verifier/pkg/os"
+	"github.com/sknv/passwordless-verifier/pkg/tracing"
 )
 
 const (
@@ -32,6 +34,13 @@ func main() {
 	makeLogger(app, cfg)
 	logger := log.Extract(app.Context())
 
+	if err = makeTracing(app, cfg); err != nil {
+		logger.WithError(err).Fatal("register tracing")
+	}
+
+	// Register a server
+	makeHTTPServer(app, cfg)
+
 	// Run the app
 	if err = runApp(app, applicationStartTimeout); err != nil {
 		logger.WithError(err).Fatal("start application")
@@ -47,6 +56,25 @@ func main() {
 
 func makeLogger(app *application.Application, config *Config) {
 	app.RegisterLogger(log.Config{Level: config.LogConfig.Level})
+}
+
+func makeTracing(app *application.Application, config *Config) error {
+	return app.RegisterTracing(tracing.Config{
+		Host:        config.Jaeger.Host,
+		Port:        config.Jaeger.Port,
+		ServiceName: config.App.Name,
+		Ratio:       config.Jaeger.Ratio,
+	})
+}
+
+func makeHTTPServer(app *application.Application, config *Config) {
+	// Create an HTTP server
+	_ = app.RegisterHTTPServer(application.HTTPServerConfig{
+		Address: config.HTTP.Address,
+		Config: server.Config{
+			Metric: server.MetricConfig{Namespace: config.App.Name},
+		},
+	})
 }
 
 func runApp(app *application.Application, timeout time.Duration) error {

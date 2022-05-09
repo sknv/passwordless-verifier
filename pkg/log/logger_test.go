@@ -1,6 +1,8 @@
 package log
 
 import (
+	"io"
+	"os"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -12,15 +14,29 @@ func TestBuild(t *testing.T) {
 		level   logrus.Level
 		options []Option
 	}
+	type want struct {
+		level logrus.Level
+		out   io.Writer
+	}
 
 	tests := []struct {
 		name string
 		args args
+		want want
 	}{
 		{
-			name: "it builds global logger successfully",
+			name: "it builds global logger and apply options successfully",
 			args: args{
 				level: logrus.DebugLevel,
+				options: []Option{
+					func(l *logrus.Logger) {
+						l.SetOutput(os.Stderr)
+					},
+				},
+			},
+			want: want{
+				level: logrus.DebugLevel,
+				out:   os.Stderr,
 			},
 		},
 	}
@@ -31,7 +47,10 @@ func TestBuild(t *testing.T) {
 			t.Parallel()
 
 			Build(tt.args.level, tt.args.options...)
-			assert.Equalf(t, tt.args.level, L().Level, "Build(%v, %v)", tt.args.level, tt.args.options)
+			assert.Equalf(t, tt.want, want{
+				level: L().Level,
+				out:   L().Out,
+			}, "Build(%v, %v)", tt.args.level, tt.args.options)
 		})
 	}
 }

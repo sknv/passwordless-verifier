@@ -1,2 +1,13 @@
+[app]
+  name = "passwordless_verifier"
+
 [log]
   level = "debug"
+
+[http]
+  address = ":4000"
+
+[jaeger]
+  host = "localhost"
+  port = "6831"
+  ratio = 1.0 # 1.0 means trace every time, 0.0 - no tracing at all
