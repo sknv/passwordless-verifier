@@ -27,5 +27,6 @@ func ParseConfig(filePath string) (*Config, error) {
 	if err := config.Parse(cfg, filePath); err != nil {
 		return nil, err
 	}
+
 	return cfg, nil
 }

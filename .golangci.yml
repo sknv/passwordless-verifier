@@ -1,3 +1,7 @@
+# https://golangci-lint.run/usage/configuration
+
+run:
+  go: '1.17'
 linters:
   enable:
     - bodyclose
@@ -24,5 +28,3 @@ linters:
     - unparam
     - wastedassign
     - whitespace
-run:
-  go: '1.17'
