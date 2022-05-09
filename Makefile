@@ -21,6 +21,10 @@ deps:
 lint:
 	golangci-lint run
 
+.PHONY: test
+test:
+	go test -cover ./...
+
 .PHONY: tools
 tools:
 	cd ./tools && ./install.sh

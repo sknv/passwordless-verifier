@@ -1,0 +1,28 @@
+linters:
+  enable:
+    - bodyclose
+    - dogsled
+    - dupl
+    - errorlint
+    - exportloopref
+    - forcetypeassert
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - goimports
+    - gosec
+    - lll
+    - nakedret
+    - nilerr
+    - noctx
+    - prealloc
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - unconvert
+    - unparam
+    - wastedassign
+    - whitespace
+run:
+  go: '1.17'
