@@ -11,5 +11,6 @@ const _apiPrefix = "/api"
 type Server struct{}
 
 func (s *Server) Route(e *echo.Echo) {
-	openapi.RegisterHandlersWithBaseURL(e, s, _apiPrefix)
+	api := e.Group(_apiPrefix)
+	openapi.RegisterHandlers(api, s)
 }

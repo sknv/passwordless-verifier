@@ -16,12 +16,9 @@ func (s *Server) CreateVerification(c echo.Context) error {
 	ctx, span := otel.Tracer("").Start(c.Request().Context(), "openapi.CreateVerification")
 	defer span.End()
 
-	logger := log.Extract(ctx)
-
 	req := &openapi.NewVerification{}
 	if err := c.Bind(req); err != nil {
-		logger.WithError(err).Error(msgDecodeJSON)
-		return BindRequestError(err)
+		return err
 	}
 
 	log.AddFields(ctx, logrus.Fields{fieldRequest: req})
