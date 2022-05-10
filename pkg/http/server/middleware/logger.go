@@ -50,8 +50,6 @@ func LoggerWithConfig(config LoggerConfig) echo.MiddlewareFunc {
 			latency := time.Since(start)
 
 			log.Extract(req.Context()).WithFields(logrus.Fields{
-				"op":            "http",
-				"id":            res.Header().Get(echo.HeaderXRequestID),
 				"remote_ip":     c.RealIP(),
 				"host":          req.Host,
 				"method":        req.Method,
@@ -62,7 +60,7 @@ func LoggerWithConfig(config LoggerConfig) echo.MiddlewareFunc {
 				"latency_human": latency.String(),
 				"bytes_in":      req.Header.Get(echo.HeaderContentLength),
 				"bytes_out":     res.Size,
-			}).Info()
+			}).Info("http request")
 
 			return err
 		}

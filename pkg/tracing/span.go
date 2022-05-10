@@ -10,5 +10,6 @@ import (
 func GetTraceID(ctx context.Context) (string, bool) {
 	span := trace.SpanFromContext(ctx)
 	traceID := span.SpanContext().TraceID()
+
 	return traceID.String(), traceID.IsValid()
 }

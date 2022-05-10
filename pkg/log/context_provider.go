@@ -66,10 +66,10 @@ func ToContext(ctx context.Context, logger logrus.FieldLogger) context.Context {
 		return ctx
 	}
 
-	log := ctxProvider{
+	log := &ctxProvider{
 		logger: logger,
 		fields: make(logrus.Fields),
 	}
 
-	return context.WithValue(ctx, _ctxMarkerKey, &log)
+	return context.WithValue(ctx, _ctxMarkerKey, log)
 }
