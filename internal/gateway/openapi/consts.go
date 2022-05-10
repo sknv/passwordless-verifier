@@ -1,8 +1,5 @@
 package openapi
 
-const (
-	msgDecodeJSON = "decode json"
-	msgRenderJSON = "render json"
-)
+const msgDecodeJSON = "decode json"
 
 const fieldRequest = "request"

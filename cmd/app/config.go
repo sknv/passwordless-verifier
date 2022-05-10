@@ -6,9 +6,7 @@ import (
 	"github.com/sknv/passwordless-verifier/pkg/config"
 )
 
-const (
-	_defaultConfigFilePath = "./configs/app.toml"
-)
+const _defaultConfigFilePath = "./configs/app.toml"
 
 func ConfigFilePathFlag() *string {
 	return flag.String("c", _defaultConfigFilePath, "configuration file path")

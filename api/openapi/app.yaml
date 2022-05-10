@@ -1,0 +1,126 @@
+openapi: "3.0.3"
+info:
+  version: 1.0.0
+  title: Passwordless Verifier
+  description: A service to verify user credentials during the passwordless authentication
+servers:
+  - url: http://localhost/api
+paths:
+  /verifications:
+    post:
+      tags:
+        - Verifications
+      description: Creates a verification
+      operationId: createVerification
+      requestBody:
+        description: New verification
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewVerification'
+      responses:
+        '200':
+          description: Verification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verification'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /verifications/{id}:
+    get:
+      tags:
+        - Verifications
+      description: Returns a verification by id
+      operationId: getVerification
+      parameters:
+        - name: id
+          in: path
+          description: ID of a verification to fetch
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Verification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verification'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  schemas:
+    NewVerification:
+      type: object
+      required:
+        - method
+      properties:
+        method:
+          $ref: '#/components/schemas/VerificationMethod'
+    Verification:
+      type: object
+      required:
+        - id
+        - method
+        - deeplink
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        method:
+          $ref: '#/components/schemas/VerificationMethod'
+        deeplink:
+          type: string
+        status:
+          $ref: '#/components/schemas/VerificationStatus'
+        session:
+          $ref: '#/components/schemas/Session'
+    VerificationMethod:
+      type: string
+      enum:
+        - telegram
+    VerificationStatus:
+      type: string
+      enum:
+        - in_progress
+        - completed
+    Session:
+      type: object
+      required:
+        - phoneNumber
+        - createdAt
+      properties:
+        phoneNumber:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    Problem:
+      type: object
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        data:
+          type: object
