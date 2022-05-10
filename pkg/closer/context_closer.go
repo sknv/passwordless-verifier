@@ -8,8 +8,8 @@ import (
 // PlainCloser describes a closer without using context.
 type PlainCloser func() error
 
-// CloseContext tries to apply the plain closer gracefully using the provided context.
-func CloseContext(ctx context.Context, closer PlainCloser) error {
+// CloseWithContext tries to apply the plain closer gracefully using the provided context.
+func CloseWithContext(ctx context.Context, closer PlainCloser) error {
 	if closer == nil {
 		return nil
 	}

@@ -23,6 +23,7 @@ func (a *Application) RegisterHTTPServer(config HTTPServerConfig, opts ...server
 		address: config.Address,
 		server:  srv,
 	}
+
 	return srv
 }
 

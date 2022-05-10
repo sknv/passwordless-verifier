@@ -15,6 +15,8 @@ func TestApplication_Context(t *testing.T) {
 		ctx context.Context
 	}
 
+	ctx := context.WithValue(context.Background(), "key", "val") // nolint // allow using string context key for testing
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -23,9 +25,9 @@ func TestApplication_Context(t *testing.T) {
 		{
 			name: "it returns the provided ctx field",
 			fields: fields{
-				ctx: context.Background(),
+				ctx: ctx,
 			},
-			want: context.Background(),
+			want: ctx,
 		},
 	}
 

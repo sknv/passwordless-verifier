@@ -6,6 +6,7 @@ import (
 	stdlog "log"
 	"time"
 
+	"github.com/sknv/passwordless-verifier/internal/gateway/openapi"
 	"github.com/sknv/passwordless-verifier/pkg/application"
 	"github.com/sknv/passwordless-verifier/pkg/http/server"
 	"github.com/sknv/passwordless-verifier/pkg/log"
@@ -69,12 +70,15 @@ func makeTracing(app *application.Application, config *Config) error {
 
 func makeHTTPServer(app *application.Application, config *Config) {
 	// Create an HTTP server
-	_ = app.RegisterHTTPServer(application.HTTPServerConfig{
+	e := app.RegisterHTTPServer(application.HTTPServerConfig{
 		Address: config.HTTP.Address,
 		Config: server.Config{
 			Metric: server.MetricConfig{Namespace: config.App.Name},
 		},
 	})
+
+	srv := &openapi.Server{}
+	srv.Route(e)
 }
 
 func runApp(app *application.Application, timeout time.Duration) error {

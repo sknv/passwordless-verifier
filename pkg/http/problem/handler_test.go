@@ -52,10 +52,10 @@ func TestHTTPErrorHandler(t *testing.T) {
 			args: args{
 				req: requestContract{method: http.MethodHead},
 				resp: responseContract{
-					err: Forbidden(),
+					err: Business("problem-type", "problem-title"),
 				},
 			},
-			want: want{code: http.StatusForbidden},
+			want: want{code: http.StatusUnprocessableEntity},
 		},
 		{
 			name: "when a problem is provided it renders the one",

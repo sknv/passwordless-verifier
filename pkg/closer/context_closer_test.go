@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCloseContext(t *testing.T) {
+func TestCloseWithContext(t *testing.T) {
 	doneCtx, cancel := context.WithTimeout(context.Background(), -1)
 	defer cancel()
 
@@ -49,8 +49,8 @@ func TestCloseContext(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := CloseContext(tt.ctx, tt.closer)
-			assert.Equal(t, tt.wantErr, err != nil, "errors do not match, err=%s", err)
+			err := CloseWithContext(tt.ctx, tt.closer)
+			assert.Equalf(t, tt.wantErr, err != nil, "errors do not match, err=%s", err)
 		})
 	}
 }

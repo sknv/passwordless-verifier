@@ -7,16 +7,21 @@ import (
 const (
 	_badRequestType          = "bad-request"
 	_unauthorizedType        = "unauthorized"
-	_forbiddenType           = "forbidden"
 	_notFoundType            = "not-found"
 	_internalServerErrorType = "internal-server-error"
 )
 
+type invalidParams struct {
+	InvalidParams []InvalidParam `json:"invalidParams,omitempty"`
+}
+
 func BadRequest(params ...InvalidParam) *Problem {
 	problem := New(http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 	problem.Type = _badRequestType
-	problem.Data = invalidParams{
-		InvalidParams: params,
+	if len(params) > 0 {
+		problem.Data = invalidParams{
+			InvalidParams: params,
+		}
 	}
 
 	return problem
@@ -25,13 +30,6 @@ func BadRequest(params ...InvalidParam) *Problem {
 func Unauthorized() *Problem {
 	problem := New(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	problem.Type = _unauthorizedType
-
-	return problem
-}
-
-func Forbidden() *Problem {
-	problem := New(http.StatusForbidden, http.StatusText(http.StatusForbidden))
-	problem.Type = _forbiddenType
 
 	return problem
 }
