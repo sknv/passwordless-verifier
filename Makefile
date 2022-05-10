@@ -17,6 +17,10 @@ add-pre-commit:
 deps:
 	go mod tidy && go mod vendor && go mod verify
 
+.PHONY: gen
+gen:
+	go generate ./...
+
 .PHONY: lint
 lint:
 	golangci-lint run
