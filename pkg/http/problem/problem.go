@@ -12,18 +12,14 @@ type InvalidParam struct {
 	Messages []string `json:"messages"`
 }
 
-type invalidParams struct {
-	InvalidParams []InvalidParam `json:"invalidParams"`
-}
-
-// Problem defines a problem details object (see RFC-7807).
+// Problem defines a problem details object.
 type Problem struct {
 	// Type contains a URI that identifies the problem type. This URI will,
-	// ideally, contain human-readable documentation for the problem when de-referenced.
+	// ideally, contain human-readable documentation for the issue when de-referenced.
 	Type string `json:"type"`
 
 	// Title is a short, human-readable summary of the problem type. This title
-	// SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
+	// SHOULD NOT change from occurrence to occurrence of the issue, except for purposes of localization.
 	Title string `json:"title"`
 
 	// Status is an HTTP status code for this occurrence of the problem.

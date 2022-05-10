@@ -12,6 +12,10 @@ const (
 	_internalServerErrorType = "internal-server-error"
 )
 
+type invalidParams struct {
+	InvalidParams []InvalidParam `json:"invalidParams"`
+}
+
 func BadRequest(params ...InvalidParam) *Problem {
 	problem := New(http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 	problem.Type = _badRequestType

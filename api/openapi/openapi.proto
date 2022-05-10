@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-package openapi.v1;
-option go_package = "github.com/sknv/go-next/api/openapi/v1;v1";
+package openapi;
+option go_package = "github.com/sknv/go-next/api/openapi;openapi";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
@@ -15,7 +15,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     version: "1.0.0";
   }
   host: "localhost";
-  base_path: "/api/v1";
+  base_path: "/api";
   schemes: HTTP;
   schemes: HTTPS;
   consumes: "application/json";
@@ -35,7 +35,7 @@ service PasswordlessVerifier {
         key: "default";
         value: {
           description: "An unexpected error response.";
-          schema: {json_schema: {ref: ".openapi.v1.Problem"}};
+          schema: {json_schema: {ref: ".openapi.Problem"}};
         }
       }
     };
@@ -44,30 +44,38 @@ service PasswordlessVerifier {
 
 // Messages
 
+// CreateVerificationRequest
 message CreateVerificationRequest {
-  string app = 1;
+  VerificationMethod method = 1;
 }
 
+// Verification
 message Verification {
   string id = 1;
-  string app = 2;
+  VerificationMethod method = 2;
   string deeplink = 3;
   VerificationStatus status = 4;
   Session session = 5;
 }
 
-enum VerificationStatus {
-  UNDEFINED = 0;
-  IN_PROGRESS = 1;
-  COMPLETED = 2;
+// VerificationMethod
+enum VerificationMethod {
+  TELEGRAM = 0;
 }
 
+// VerificationStatus
+enum VerificationStatus {
+  IN_PROGRESS = 0;
+  COMPLETED = 1;
+}
+
+// Session
 message Session {
   string phoneNumber = 1;
   google.protobuf.Timestamp createdAt = 2;
 }
 
-// An unexpected error response
+// Problem
 message Problem {
   string type = 1;
   string title = 2;

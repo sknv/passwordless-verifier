@@ -10,7 +10,7 @@
     }
   ],
   "host": "localhost",
-  "basePath": "/api/v1",
+  "basePath": "/api",
   "schemes": [
     "http",
     "https"
@@ -29,13 +29,13 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1Verification"
+              "$ref": "#/definitions/openapiVerification"
             }
           },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/v1Problem"
+              "$ref": "#/definitions/openapiProblem"
             }
           }
         },
@@ -45,7 +45,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateVerificationRequest"
+              "$ref": "#/definitions/openapiCreateVerificationRequest"
             }
           }
         ],
@@ -56,6 +56,91 @@
     }
   },
   "definitions": {
+    "openapiCreateVerificationRequest": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "$ref": "#/definitions/openapiVerificationMethod"
+        }
+      },
+      "title": "CreateVerificationRequest"
+    },
+    "openapiProblem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Problem"
+    },
+    "openapiSession": {
+      "type": "object",
+      "properties": {
+        "phoneNumber": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "Session"
+    },
+    "openapiVerification": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "method": {
+          "$ref": "#/definitions/openapiVerificationMethod"
+        },
+        "deeplink": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/openapiVerificationStatus"
+        },
+        "session": {
+          "$ref": "#/definitions/openapiSession"
+        }
+      },
+      "title": "Verification"
+    },
+    "openapiVerificationMethod": {
+      "type": "string",
+      "enum": [
+        "TELEGRAM"
+      ],
+      "default": "TELEGRAM",
+      "title": "VerificationMethod"
+    },
+    "openapiVerificationStatus": {
+      "type": "string",
+      "enum": [
+        "IN_PROGRESS",
+        "COMPLETED"
+      ],
+      "default": "IN_PROGRESS",
+      "title": "VerificationStatus"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -82,79 +167,6 @@
           }
         }
       }
-    },
-    "v1CreateVerificationRequest": {
-      "type": "object",
-      "properties": {
-        "app": {
-          "type": "string"
-        }
-      }
-    },
-    "v1Problem": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "detail": {
-          "type": "string"
-        },
-        "data": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v1Session": {
-      "type": "object",
-      "properties": {
-        "phoneNumber": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "v1Verification": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "app": {
-          "type": "string"
-        },
-        "deeplink": {
-          "type": "string"
-        },
-        "status": {
-          "$ref": "#/definitions/v1VerificationStatus"
-        },
-        "session": {
-          "$ref": "#/definitions/v1Session"
-        }
-      }
-    },
-    "v1VerificationStatus": {
-      "type": "string",
-      "enum": [
-        "UNDEFINED",
-        "IN_PROGRESS",
-        "COMPLETED"
-      ],
-      "default": "UNDEFINED"
     }
   }
 }
