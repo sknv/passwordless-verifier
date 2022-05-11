@@ -5,7 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel"
 
 	"github.com/sknv/passwordless-verifier/api/openapi"
 	"github.com/sknv/passwordless-verifier/internal/gateway/openapi/view"
@@ -13,8 +12,7 @@ import (
 )
 
 func (s *Server) CreateVerification(c echo.Context) error {
-	ctx, span := otel.Tracer("").Start(c.Request().Context(), "openapi.CreateVerification")
-	defer span.End()
+	ctx := c.Request().Context()
 
 	req := &openapi.NewVerification{}
 	if err := c.Bind(req); err != nil {
