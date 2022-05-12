@@ -54,10 +54,6 @@ container-start:
 container-stop:
 	${DOCKER_COMPOSE_CMD} stop ${CONTAINER} && ${DOCKER_COMPOSE_CMD} rm --force ${CONTAINER}
 
-.PHONY: docker-prune
-docker-prune:
-	docker system prune --volumes
-
 .PHONY: jaeger-start
 jaeger-start:
 	CONTAINER=jaeger $(MAKE) container-start
@@ -79,3 +75,7 @@ docker-start: jaeger-start cockroach-start
 
 .PHONY: docker-stop
 docker-stop: cockroach-stop jaeger-stop
+
+.PHONY: docker-prune
+docker-prune:
+	docker system prune --volumes
