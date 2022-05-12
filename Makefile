@@ -3,6 +3,8 @@ PROJECT_NAME=passwordless_verifier
 DOCKER_COMPOSE_FILE=./build/docker/docker-compose.yml
 DOCKER_COMPOSE_CMD=docker-compose -f ${DOCKER_COMPOSE_FILE} -p ${PROJECT_NAME}
 
+POSTGRES_URL?=postgres://root:root@localhost:26257/postgres?sslmode=disable
+
 .PHONY: all
 all:
 
@@ -13,6 +15,10 @@ all:
 .PHONY: add-pre-commit
 add-pre-commit:
 	lefthook add pre-commit
+
+.PHONY: db-migrate
+db-migrate:
+	goose.exe -dir ./db/migrations postgres ${POSTGRES_URL} up
 
 ##
 # Go section
