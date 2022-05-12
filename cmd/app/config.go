@@ -30,11 +30,18 @@ type JaegerConfig struct {
 	Ratio float64 `toml:"ratio" env:"JAEGER_RATIO"`
 }
 
+type PostgresConfig struct {
+	URL             string          `toml:"url" env:"POSTGRES_URL"`
+	MaxOpenConn     int             `toml:"max_open_conn" env:"POSTGRES_MAX_OPEN_CONN"`
+	MaxConnLifetime config.Duration `toml:"max_conn_lifetime" env:"POSTGRES_MAX_CONN_LIFETIME"`
+}
+
 type Config struct {
-	App       AppConfig    `toml:"app"`
-	LogConfig LogConfig    `toml:"log"`
-	HTTP      HTTPConfig   `toml:"http"`
-	Jaeger    JaegerConfig `toml:"jaeger"`
+	App       AppConfig      `toml:"app"`
+	LogConfig LogConfig      `toml:"log"`
+	HTTP      HTTPConfig     `toml:"http"`
+	Jaeger    JaegerConfig   `toml:"jaeger"`
+	Postgres  PostgresConfig `toml:"postgres"`
 }
 
 func ParseConfig(filePath string) (*Config, error) {

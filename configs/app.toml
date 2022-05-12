@@ -1,13 +1,18 @@
 [app]
-  name = "passwordless_verifier"
+name = "passwordless_verifier"
 
 [log]
-  level = "debug"
+level = "debug"
 
 [http]
-  address = ":4000"
+address = ":8080"
 
 [jaeger]
-  host = "localhost"
-  port = "6831"
-  ratio = 1.0 # 1.0 means trace every time, 0.0 - no tracing at all
+host = "localhost"
+port = "6831"
+ratio = 1.0 # 1.0 means trace every time, 0.0 - no tracing at all
+
+[postgres]
+url = "postgres://root:root@localhost:26257/postgres?sslmode=disable"
+max_open_conn = 10 # default is 10 per CPU
+max_conn_lifetime = "10m"

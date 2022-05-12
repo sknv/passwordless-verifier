@@ -6,11 +6,14 @@ import (
 	stdlog "log"
 	"time"
 
+	"github.com/uptrace/bun"
+
 	"github.com/sknv/passwordless-verifier/internal/gateway/openapi"
 	"github.com/sknv/passwordless-verifier/pkg/application"
 	"github.com/sknv/passwordless-verifier/pkg/http/server"
 	"github.com/sknv/passwordless-verifier/pkg/log"
 	"github.com/sknv/passwordless-verifier/pkg/os"
+	"github.com/sknv/passwordless-verifier/pkg/postgres"
 	"github.com/sknv/passwordless-verifier/pkg/tracing"
 )
 
@@ -39,6 +42,11 @@ func main() {
 		logger.WithError(err).Fatal("register tracing")
 	}
 
+	_, err = makeDB(app, cfg)
+	if err != nil {
+		logger.WithError(err).Fatal("register postgres")
+	}
+
 	// Register a server
 	makeHTTPServer(app, cfg)
 
@@ -65,6 +73,14 @@ func makeTracing(app *application.Application, config *Config) error {
 		Port:        config.Jaeger.Port,
 		ServiceName: config.App.Name,
 		Ratio:       config.Jaeger.Ratio,
+	})
+}
+
+func makeDB(app *application.Application, config *Config) (*bun.DB, error) {
+	return app.RegisterPostgres(app.Context(), postgres.Config{
+		URL:             config.Postgres.URL,
+		MaxOpenConn:     config.Postgres.MaxOpenConn,
+		MaxConnLifetime: config.Postgres.MaxConnLifetime.Duration(),
 	})
 }
 
