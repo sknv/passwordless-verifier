@@ -22,7 +22,7 @@ func HTTPErrorHandler(respErr error, c echo.Context) {
 	}
 
 	var (
-		problem Problem
+		problem *Problem
 		httpErr *echo.HTTPError
 	)
 	switch {

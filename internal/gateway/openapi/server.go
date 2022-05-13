@@ -14,6 +14,7 @@ const _apiPrefix = "/api"
 
 type Usecase interface {
 	CreateVerification(ctx context.Context, newVerification *usecase.NewVerification) (*model.Verification, error)
+	GetVerification(ctx context.Context, params *usecase.GetVerificationParams) (*model.Verification, error)
 }
 
 type Server struct {

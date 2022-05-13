@@ -2,6 +2,7 @@ package problem
 
 import (
 	"fmt"
+	"strings"
 )
 
 // InvalidParam describes an invalid parameter.
@@ -12,6 +13,9 @@ type InvalidParam struct {
 
 // Problem defines a problem details object.
 type Problem struct {
+	// Err holds a wrapped error. The field is not rendered.
+	Err error `json:"-"`
+
 	// Type contains a URI that identifies the problem type. This URI will,
 	// ideally, contain human-readable documentation for the issue when de-referenced.
 	Type string `json:"type,omitempty"`
@@ -30,13 +34,30 @@ type Problem struct {
 	Data any `json:"data,omitempty"`
 }
 
-func New(status int, title string) Problem {
-	return Problem{
+func New(status int, title string) *Problem {
+	return &Problem{
 		Status: status,
 		Title:  title,
 	}
 }
 
-func (p Problem) Error() string {
-	return fmt.Sprintf("type = %s, status = %d, title = %s", p.Type, p.Status, p.Title)
+func (p *Problem) Error() string {
+	fields := []string{
+		fmt.Sprintf("status = %d", p.Status),
+		fmt.Sprintf("title = %s", p.Title),
+	}
+
+	if p.Type != "" {
+		fields = append(fields, fmt.Sprintf("type = %s", p.Type))
+	}
+
+	if p.Err != nil {
+		fields = append(fields, fmt.Sprintf("err = %s", p.Err))
+	}
+
+	return strings.Join(fields, ", ")
+}
+
+func (p *Problem) Unwrap() error {
+	return p.Err
 }
