@@ -8,9 +8,9 @@ import (
 
 func TestProblem_Error(t *testing.T) {
 	type fields struct {
-		status int
-		title  string
-		detail string
+		problemType string
+		status      int
+		title       string
 	}
 
 	tests := []struct {
@@ -21,11 +21,11 @@ func TestProblem_Error(t *testing.T) {
 		{
 			name: "it returns an error with expected format",
 			fields: fields{
-				status: 400,
-				title:  "any-title",
-				detail: "any-detail",
+				problemType: "bad-request",
+				status:      400,
+				title:       "any-title",
 			},
-			want: "status = 400, title = any-title, detail = any-detail",
+			want: "type = bad-request, status = 400, title = any-title",
 		},
 	}
 
@@ -35,9 +35,9 @@ func TestProblem_Error(t *testing.T) {
 			t.Parallel()
 
 			p := &Problem{
+				Type:   tt.fields.problemType,
 				Title:  tt.fields.title,
 				Status: tt.fields.status,
-				Detail: tt.fields.detail,
 			}
 			assert.Equalf(t, tt.want, p.Error(), "Error()")
 		})

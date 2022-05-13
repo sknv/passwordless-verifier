@@ -1,7 +1,12 @@
 # https://golangci-lint.run/usage/configuration
 
 run:
+  # Define the Go version limit.
   go: '1.17'
+
+  # Include test files or not.
+  tests: false
+
 linters:
   enable:
     - bodyclose

@@ -6,6 +6,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.10.1
 	github.com/evilmartians/lefthook v0.7.7
 	github.com/golangci/golangci-lint v1.45.2
+	github.com/matryer/moq v0.2.7
 	github.com/pressly/goose/v3 v3.5.3
 )
 

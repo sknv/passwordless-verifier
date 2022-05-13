@@ -15,7 +15,7 @@ func TestApplication_Context(t *testing.T) {
 		ctx context.Context
 	}
 
-	ctx := context.WithValue(context.Background(), "key", "val") // nolint // allow using string context key for testing
+	ctx := context.WithValue(context.Background(), "key", "val")
 
 	tests := []struct {
 		name   string
