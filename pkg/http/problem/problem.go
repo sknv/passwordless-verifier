@@ -34,14 +34,14 @@ type Problem struct {
 	Data any `json:"data,omitempty"`
 }
 
-func New(status int, title string) Problem {
-	return Problem{
+func New(status int, title string) *Problem {
+	return &Problem{
 		Status: status,
 		Title:  title,
 	}
 }
 
-func (p Problem) Error() string {
+func (p *Problem) Error() string {
 	fields := []string{
 		fmt.Sprintf("status = %d", p.Status),
 		fmt.Sprintf("title = %s", p.Title),
@@ -58,6 +58,6 @@ func (p Problem) Error() string {
 	return strings.Join(fields, ", ")
 }
 
-func (p Problem) Unwrap() error {
+func (p *Problem) Unwrap() error {
 	return p.Err
 }
