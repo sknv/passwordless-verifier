@@ -9,6 +9,8 @@ import (
 	"github.com/sknv/passwordless-verifier/internal/gateway/openapi/converter"
 )
 
+// CreateVerification handler
+// POST /verifications
 func (s *Server) CreateVerification(c echo.Context) error {
 	ctx := c.Request().Context()
 

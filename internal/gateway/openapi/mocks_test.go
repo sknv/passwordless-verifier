@@ -24,6 +24,9 @@ var _ Usecase = &UsecaseMock{}
 // 			CreateVerificationFunc: func(ctx context.Context, newVerification *usecase.NewVerification) (*model.Verification, error) {
 // 				panic("mock out the CreateVerification method")
 // 			},
+// 			GetVerificationFunc: func(ctx context.Context, params *usecase.GetVerificationParams) (*model.Verification, error) {
+// 				panic("mock out the GetVerification method")
+// 			},
 // 		}
 //
 // 		// use mockedUsecase in code that requires Usecase
@@ -34,6 +37,9 @@ type UsecaseMock struct {
 	// CreateVerificationFunc mocks the CreateVerification method.
 	CreateVerificationFunc func(ctx context.Context, newVerification *usecase.NewVerification) (*model.Verification, error)
 
+	// GetVerificationFunc mocks the GetVerification method.
+	GetVerificationFunc func(ctx context.Context, params *usecase.GetVerificationParams) (*model.Verification, error)
+
 	// calls tracks calls to the methods.
 	calls struct {
 		// CreateVerification holds details about calls to the CreateVerification method.
@@ -43,8 +49,16 @@ type UsecaseMock struct {
 			// NewVerification is the newVerification argument value.
 			NewVerification *usecase.NewVerification
 		}
+		// GetVerification holds details about calls to the GetVerification method.
+		GetVerification []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Params is the params argument value.
+			Params *usecase.GetVerificationParams
+		}
 	}
 	lockCreateVerification sync.RWMutex
+	lockGetVerification    sync.RWMutex
 }
 
 // CreateVerification calls CreateVerificationFunc.
@@ -79,5 +93,40 @@ func (mock *UsecaseMock) CreateVerificationCalls() []struct {
 	mock.lockCreateVerification.RLock()
 	calls = mock.calls.CreateVerification
 	mock.lockCreateVerification.RUnlock()
+	return calls
+}
+
+// GetVerification calls GetVerificationFunc.
+func (mock *UsecaseMock) GetVerification(ctx context.Context, params *usecase.GetVerificationParams) (*model.Verification, error) {
+	if mock.GetVerificationFunc == nil {
+		panic("UsecaseMock.GetVerificationFunc: method is nil but Usecase.GetVerification was just called")
+	}
+	callInfo := struct {
+		Ctx    context.Context
+		Params *usecase.GetVerificationParams
+	}{
+		Ctx:    ctx,
+		Params: params,
+	}
+	mock.lockGetVerification.Lock()
+	mock.calls.GetVerification = append(mock.calls.GetVerification, callInfo)
+	mock.lockGetVerification.Unlock()
+	return mock.GetVerificationFunc(ctx, params)
+}
+
+// GetVerificationCalls gets all the calls that were made to GetVerification.
+// Check the length with:
+//     len(mockedUsecase.GetVerificationCalls())
+func (mock *UsecaseMock) GetVerificationCalls() []struct {
+	Ctx    context.Context
+	Params *usecase.GetVerificationParams
+} {
+	var calls []struct {
+		Ctx    context.Context
+		Params *usecase.GetVerificationParams
+	}
+	mock.lockGetVerification.RLock()
+	calls = mock.calls.GetVerification
+	mock.lockGetVerification.RUnlock()
 	return calls
 }
