@@ -4,19 +4,17 @@ import (
 	"fmt"
 )
 
-const _defaultType = "about:blank"
-
 // InvalidParam describes an invalid parameter.
 type InvalidParam struct {
-	Name     string   `json:"name"`
-	Messages []string `json:"messages"`
+	Name    string `json:"name"`
+	Message string `json:"message"`
 }
 
 // Problem defines a problem details object.
 type Problem struct {
 	// Type contains a URI that identifies the problem type. This URI will,
 	// ideally, contain human-readable documentation for the issue when de-referenced.
-	Type string `json:"type"`
+	Type string `json:"type,omitempty"`
 
 	// Title is a short, human-readable summary of the problem type. This title
 	// SHOULD NOT change from occurrence to occurrence of the issue, except for purposes of localization.
@@ -32,14 +30,13 @@ type Problem struct {
 	Data any `json:"data,omitempty"`
 }
 
-func New(status int, title string) *Problem {
-	return &Problem{
+func New(status int, title string) Problem {
+	return Problem{
 		Status: status,
 		Title:  title,
-		Type:   _defaultType,
 	}
 }
 
-func (p *Problem) Error() string {
-	return fmt.Sprintf("status = %d, title = %s, detail = %s", p.Status, p.Title, p.Detail)
+func (p Problem) Error() string {
+	return fmt.Sprintf("type = %s, status = %d, title = %s", p.Type, p.Status, p.Title)
 }

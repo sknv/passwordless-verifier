@@ -15,7 +15,7 @@ type invalidParams struct {
 	InvalidParams []InvalidParam `json:"invalidParams,omitempty"`
 }
 
-func BadRequest(params ...InvalidParam) *Problem {
+func BadRequest(params ...InvalidParam) Problem {
 	problem := New(http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 	problem.Type = _badRequestType
 	if len(params) > 0 {
@@ -27,28 +27,28 @@ func BadRequest(params ...InvalidParam) *Problem {
 	return problem
 }
 
-func Unauthorized() *Problem {
+func Unauthorized() Problem {
 	problem := New(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	problem.Type = _unauthorizedType
 
 	return problem
 }
 
-func NotFound() *Problem {
+func NotFound() Problem {
 	problem := New(http.StatusNotFound, http.StatusText(http.StatusNotFound))
 	problem.Type = _notFoundType
 
 	return problem
 }
 
-func Business(problemType, title string) *Problem {
+func Business(problemType, title string) Problem {
 	problem := New(http.StatusUnprocessableEntity, title)
 	problem.Type = problemType
 
 	return problem
 }
 
-func InternalServerError() *Problem {
+func InternalServerError() Problem {
 	problem := New(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	problem.Type = _internalServerErrorType
 

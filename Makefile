@@ -18,7 +18,7 @@ add-pre-commit:
 
 .PHONY: db-migrate
 db-migrate:
-	goose.exe -dir ./db/migrations postgres ${POSTGRES_URL} up
+	goose -dir ./db/migrations postgres ${POSTGRES_URL} up
 
 ##
 # Go section
@@ -42,7 +42,7 @@ run:
 
 .PHONY: test
 test:
-	go test -cover ./...
+	go test -cover -gcflags=all=-l ./...
 
 .PHONY: tools
 tools:

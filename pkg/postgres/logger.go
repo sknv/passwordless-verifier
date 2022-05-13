@@ -18,5 +18,5 @@ func WithLogger(db *bun.DB) {
 func (Logger) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Context { return ctx }
 
 func (Logger) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
-	log.Extract(ctx).Debug(event)
+	log.Extract(ctx).Debug(event.Query)
 }
