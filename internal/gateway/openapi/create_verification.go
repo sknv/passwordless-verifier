@@ -4,11 +4,9 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
 
 	"github.com/sknv/passwordless-verifier/api/openapi"
-	"github.com/sknv/passwordless-verifier/internal/gateway/openapi/view"
-	"github.com/sknv/passwordless-verifier/pkg/log"
+	"github.com/sknv/passwordless-verifier/internal/gateway/openapi/converter"
 )
 
 func (s *Server) CreateVerification(c echo.Context) error {
@@ -19,7 +17,10 @@ func (s *Server) CreateVerification(c echo.Context) error {
 		return err
 	}
 
-	log.AddFields(ctx, logrus.Fields{fieldRequest: req})
+	verification, err := s.Usecase.CreateVerification(ctx, converter.FromNewVerification(req))
+	if err != nil {
+		return err
+	}
 
-	return c.JSON(http.StatusOK, view.ToVerification())
+	return c.JSON(http.StatusOK, converter.ToVerification(verification))
 }

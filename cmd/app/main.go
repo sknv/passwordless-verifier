@@ -9,6 +9,7 @@ import (
 	"github.com/uptrace/bun"
 
 	"github.com/sknv/passwordless-verifier/internal/gateway/openapi"
+	"github.com/sknv/passwordless-verifier/internal/usecase"
 	"github.com/sknv/passwordless-verifier/pkg/application"
 	"github.com/sknv/passwordless-verifier/pkg/http/server"
 	"github.com/sknv/passwordless-verifier/pkg/log"
@@ -42,13 +43,13 @@ func main() {
 		logger.WithError(err).Fatal("register tracing")
 	}
 
-	_, err = makeDB(app, cfg)
+	db, err := makeDB(app, cfg)
 	if err != nil {
 		logger.WithError(err).Fatal("register postgres")
 	}
 
 	// Register a server
-	makeHTTPServer(app, cfg)
+	makeHTTPServer(app, cfg, makeUsecase(db))
 
 	// Run the app
 	if err = runApp(app, applicationStartTimeout); err != nil {
@@ -84,7 +85,13 @@ func makeDB(app *application.Application, config *Config) (*bun.DB, error) {
 	})
 }
 
-func makeHTTPServer(app *application.Application, config *Config) {
+func makeUsecase(db *bun.DB) *usecase.Usecase {
+	return &usecase.Usecase{
+		DB: db,
+	}
+}
+
+func makeHTTPServer(app *application.Application, config *Config, usecase *usecase.Usecase) {
 	// Create an HTTP server
 	e := app.RegisterHTTPServer(application.HTTPServerConfig{
 		Address: config.HTTP.Address,
@@ -93,7 +100,9 @@ func makeHTTPServer(app *application.Application, config *Config) {
 		},
 	})
 
-	srv := &openapi.Server{}
+	srv := &openapi.Server{
+		Usecase: usecase,
+	}
 	srv.Route(e)
 }
 

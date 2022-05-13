@@ -17,14 +17,14 @@ func (a *Application) RegisterPostgres(
 	logger := log.Extract(ctx)
 	logger.Info("opening postgres connection...")
 
-	pg := postgres.Connect(config, options...)
+	db := postgres.Connect(config, options...)
 
 	logger.Info("postgres connection opened")
 
 	// Ping the db
 	logger.Info("checking postgres...")
 
-	if err := pg.PingContext(ctx); err != nil {
+	if err := db.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("ping postgres: %w", err)
 	}
 
@@ -35,12 +35,12 @@ func (a *Application) RegisterPostgres(
 		logger.Info("closing postgres connection...")
 		defer logger.Info("postgres connection closed")
 
-		if err := closer.CloseWithContext(ctx, pg.Close); err != nil {
+		if err := closer.CloseWithContext(ctx, db.Close); err != nil {
 			return fmt.Errorf("close postrgres: %w", err)
 		}
 
 		return nil
 	})
 
-	return pg, nil
+	return db, nil
 }
