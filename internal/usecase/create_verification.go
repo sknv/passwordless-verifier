@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
+	"github.com/uptrace/bun"
 	"go.opentelemetry.io/otel"
 
 	"github.com/sknv/passwordless-verifier/internal/model"
@@ -28,22 +28,33 @@ func (v NewVerification) Validate() error {
 	return nil
 }
 
+func (v NewVerification) ToVerification(db *bun.DB) *model.Verification {
+	return &model.Verification{
+		DB: db,
+
+		ID:     uuid.New(),
+		Method: v.Method,
+		Status: model.VerificationStatusInProgress,
+	}
+}
+
 func (u *Usecase) CreateVerification(
 	ctx context.Context, newVerification *NewVerification,
 ) (*model.Verification, error) {
 	ctx, span := otel.Tracer("").Start(ctx, "usecase.CreateVerification")
 	defer span.End()
 
-	log.AddFields(ctx, logrus.Fields{fieldParams: newVerification})
+	log.Extract(ctx).
+		WithField(fieldParams, newVerification).
+		Info("usecase.CreateVerification")
 
 	if err := newVerification.Validate(); err != nil {
 		return nil, fmt.Errorf("validate params: %w", err)
 	}
 
-	verification := &model.Verification{
-		ID:     uuid.New(),
-		Method: newVerification.Method,
-		Status: model.VerificationStatusInProgress,
+	verification := newVerification.ToVerification(u.DB)
+	if err := verification.Create(ctx); err != nil {
+		return nil, fmt.Errorf("create verification: %w", err)
 	}
 
 	return verification, nil

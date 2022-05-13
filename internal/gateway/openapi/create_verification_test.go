@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -44,30 +43,11 @@ func TestServer_CreateVerification(t *testing.T) {
 	verificationUUID := uuid.New()
 
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *openapi.Verification
-		wantErr bool
+		name   string
+		fields fields
+		args   args
+		want   *openapi.Verification
 	}{
-		{
-			name: "when usecase returns an error it renders an error response",
-			fields: fields{
-				usecase: usecaseContract{
-					createVerification: createVerificationContract{
-						in: &usecase.NewVerification{
-							Method: model.VerificationMethodTelegram,
-						},
-						err:   errors.New("any-error"),
-						times: 1,
-					},
-				},
-			},
-			args: args{
-				req: `{"method": "telegram"}`,
-			},
-			wantErr: true,
-		},
 		{
 			name: "when usecase returns an verification it renders a verification response",
 			fields: fields{
@@ -127,11 +107,6 @@ func TestServer_CreateVerification(t *testing.T) {
 			err := s.CreateVerification(c)
 			assert.Equalf(t, tt.fields.usecase.createVerification.times, len(usecaseMock.CreateVerificationCalls()),
 				"usecase.CreateVerificationCalls")
-			assert.Equalf(t, tt.wantErr, err != nil, "CreateVerification(%v)", tt.args.req)
-
-			if tt.want == nil {
-				return
-			}
 
 			resp := &openapi.Verification{}
 			err = json.Unmarshal(rec.Body.Bytes(), resp)
