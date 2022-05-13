@@ -18,23 +18,9 @@ import (
 	"github.com/sknv/passwordless-verifier/internal/usecase"
 )
 
-//go:generate moq -out mocks_test.go . Usecase
-
 func TestServer_CreateVerification(t *testing.T) {
-	type (
-		createVerificationContract struct {
-			in    *usecase.NewVerification
-			out   *model.Verification
-			err   error
-			times int
-		}
-
-		usecaseContract struct {
-			createVerification createVerificationContract
-		}
-	)
 	type fields struct {
-		usecase usecaseContract
+		usecase *UsecaseMock
 	}
 	type args struct {
 		req string
@@ -43,27 +29,31 @@ func TestServer_CreateVerification(t *testing.T) {
 	verificationUUID := uuid.New()
 
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *openapi.Verification
+		name          string
+		prepareFields func() *fields
+		args          args
+		want          *openapi.Verification
 	}{
 		{
-			name: "when usecase returns an verification it renders a verification response",
-			fields: fields{
-				usecase: usecaseContract{
-					createVerification: createVerificationContract{
-						in: &usecase.NewVerification{
-							Method: model.VerificationMethodTelegram,
+			name: "when usecase returns a verification it renders a verification response",
+			prepareFields: func() *fields {
+				in := &usecase.NewVerification{
+					Method: model.VerificationMethodTelegram,
+				}
+				out := &model.Verification{
+					ID:     verificationUUID,
+					Method: model.VerificationMethodTelegram,
+					Status: model.VerificationStatusInProgress,
+				}
+
+				return &fields{
+					usecase: &UsecaseMock{
+						CreateVerificationFunc: func(_ context.Context, newVerification *usecase.NewVerification) (*model.Verification, error) {
+							assert.Equalf(t, in, newVerification, "usecase.CreateVerification(%v)", newVerification)
+							return out, nil
 						},
-						out: &model.Verification{
-							ID:     verificationUUID,
-							Method: model.VerificationMethodTelegram,
-							Status: model.VerificationStatusInProgress,
-						},
-						times: 1,
 					},
-				},
+				}
 			},
 			args: args{
 				req: `{"method": "telegram"}`,
@@ -89,24 +79,17 @@ func TestServer_CreateVerification(t *testing.T) {
 			c := echo.New().NewContext(req, rec)
 			c.SetPath("/api/verifications")
 
-			// Prepare deps
-			usecaseMock := &UsecaseMock{
-				CreateVerificationFunc: func(ctx context.Context, newVerification *usecase.NewVerification) (*model.Verification, error) {
-					assert.Equalf(t, tt.fields.usecase.createVerification.in, newVerification,
-						"usecase.CreateVerification(%v)", newVerification)
-					return tt.fields.usecase.createVerification.out, tt.fields.usecase.createVerification.err
-				},
-			}
+			// Prepare fields
+			fields := tt.prepareFields()
 
 			// Construct test object
 			srv := &Server{
-				Usecase: usecaseMock,
+				Usecase: fields.usecase,
 			}
 			s := openapi.ServerInterfaceWrapper{Handler: srv}
 
 			err := s.CreateVerification(c)
-			assert.Equalf(t, tt.fields.usecase.createVerification.times, len(usecaseMock.CreateVerificationCalls()),
-				"usecase.CreateVerificationCalls")
+			assert.NoErrorf(t, err, "CreateVerification(%v)", tt.args.req)
 
 			resp := &openapi.Verification{}
 			err = json.Unmarshal(rec.Body.Bytes(), resp)

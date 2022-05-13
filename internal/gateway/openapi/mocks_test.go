@@ -5,9 +5,10 @@ package openapi
 
 import (
 	"context"
+	"sync"
+
 	"github.com/sknv/passwordless-verifier/internal/model"
 	"github.com/sknv/passwordless-verifier/internal/usecase"
-	"sync"
 )
 
 // Ensure, that UsecaseMock does implement Usecase.
