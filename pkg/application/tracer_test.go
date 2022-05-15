@@ -31,8 +31,8 @@ func TestApplication_RegisterTracing(t *testing.T) {
 			t.Parallel()
 
 			a := &Application{
-				Closers: &closer.Closers{},
 				ctx:     context.Background(),
+				closers: &closer.Closers{},
 			}
 			err := a.RegisterTracing(tt.args.config)
 			assert.Equalf(t, tt.wantErr, err != nil, "RegisterTracing(%v)", tt.args.config)

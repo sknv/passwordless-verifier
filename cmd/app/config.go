@@ -36,12 +36,20 @@ type PostgresConfig struct {
 	MaxConnLifetime config.Duration `toml:"max_conn_lifetime" env:"POSTGRES_MAX_CONN_LIFETIME"`
 }
 
+type TelegramConfig struct {
+	APIToken          string          `toml:"api_token" env:"TELEGRAM_API_TOKEN"`
+	PollingTimeout    config.Duration `toml:"polling_timeout" env:"TELEGRAM_POLLING_TIMEOUT"`
+	MaxUpdatesAllowed int             `toml:"max_updates_allowed" env:"TELEGRAM_MAX_UPDATES_ALLOWED"`
+	Debug             bool            `toml:"debug" env:"TELEGRAM_DEBUG"`
+}
+
 type Config struct {
 	App       AppConfig      `toml:"app"`
 	LogConfig LogConfig      `toml:"log"`
 	HTTP      HTTPConfig     `toml:"http"`
 	Jaeger    JaegerConfig   `toml:"jaeger"`
 	Postgres  PostgresConfig `toml:"postgres"`
+	Telegram  TelegramConfig `toml:"telegram"`
 }
 
 func ParseConfig(filePath string) (*Config, error) {

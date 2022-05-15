@@ -10,6 +10,7 @@ import (
 
 	"github.com/sknv/passwordless-verifier/internal/gateway/openapi"
 	"github.com/sknv/passwordless-verifier/internal/usecase"
+	"github.com/sknv/passwordless-verifier/internal/worker/telegram"
 	"github.com/sknv/passwordless-verifier/pkg/application"
 	"github.com/sknv/passwordless-verifier/pkg/http/server"
 	"github.com/sknv/passwordless-verifier/pkg/log"
@@ -48,6 +49,11 @@ func main() {
 		logger.WithError(err).Fatal("register postgres")
 	}
 
+	// Register a telegram bot
+	if err = makeTelegramBot(app, cfg); err != nil {
+		logger.WithError(err).Fatal("register telegram bot")
+	}
+
 	// Register a server
 	makeHTTPServer(app, cfg, makeUsecase(db))
 
@@ -83,6 +89,21 @@ func makeDB(app *application.Application, config *Config) (*bun.DB, error) {
 		MaxOpenConn:     config.Postgres.MaxOpenConn,
 		MaxConnLifetime: config.Postgres.MaxConnLifetime.Duration(),
 	})
+}
+
+func makeTelegramBot(app *application.Application, config *Config) error {
+	bot, err := telegram.NewBot(telegram.BotConfig{
+		APIToken:          config.Telegram.APIToken,
+		PollingTimeout:    config.Telegram.PollingTimeout.Duration(),
+		MaxUpdatesAllowed: config.Telegram.MaxUpdatesAllowed,
+		Debug:             config.Telegram.Debug,
+	})
+	if err != nil {
+		return err
+	}
+
+	app.RegisterWorker(bot)
+	return nil
 }
 
 func makeUsecase(db *bun.DB) *usecase.Usecase {

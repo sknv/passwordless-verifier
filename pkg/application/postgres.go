@@ -31,7 +31,7 @@ func (a *Application) RegisterPostgres(
 	logger.Info("postgres checked")
 
 	// Remember to close the db connection
-	a.Closers.Add(func(context.Context) error {
+	a.closers.Add(func(context.Context) error {
 		logger.Info("closing postgres connection...")
 		defer logger.Info("postgres connection closed")
 

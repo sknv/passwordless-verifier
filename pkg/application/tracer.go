@@ -17,7 +17,7 @@ func (a *Application) RegisterTracing(config tracing.Config) error {
 	}
 
 	// Remember to flush tracer, if any
-	a.Closers.Add(func(ctx context.Context) error {
+	a.closers.Add(func(ctx context.Context) error {
 		logger := log.Extract(ctx)
 		logger.Info("flushing tracer...")
 		defer logger.Info("tracer flushed")

@@ -15,14 +15,14 @@ func CloseWithContext(ctx context.Context, closer PlainCloser) error {
 	}
 
 	var err error
-	closed := make(chan struct{})
+	done := make(chan struct{})
 	go func() {
 		err = closer()
-		close(closed)
+		close(done)
 	}()
 
 	select {
-	case <-closed:
+	case <-done:
 		return err
 	case <-ctx.Done():
 		return fmt.Errorf("context done: %w", ctx.Err())
