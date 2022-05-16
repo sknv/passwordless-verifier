@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/uptrace/bun"
 
 	"github.com/sknv/passwordless-verifier/internal/model"
 )
@@ -49,10 +48,10 @@ func TestNewVerification_ToVerification(t *testing.T) {
 		method model.VerificationMethod
 	}
 	type args struct {
-		db *bun.DB
+		db model.DB
 	}
 
-	db := &bun.DB{}
+	db := &model.DBMock{}
 
 	tests := []struct {
 		name   string
@@ -73,11 +72,10 @@ func TestNewVerification_ToVerification(t *testing.T) {
 					DB: db,
 
 					Method: model.VerificationMethodTelegram,
-					Status: model.VerificationStatusInProgress,
 				}
 
 				got, _ := actual.(*model.Verification)
-				got.ID = uuid.UUID{} // ignore id field when compare
+				got.ID = uuid.UUID{} // ignore field when compare
 
 				return assert.Equal(t, want, got, msgAndArgs)
 			},

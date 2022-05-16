@@ -3,7 +3,6 @@ module github.com/sknv/passwordless-verifier
 go 1.18
 
 require (
-	github.com/agiledragon/gomonkey/v2 v2.7.0
 	github.com/deepmap/oapi-codegen v1.10.1
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/google/uuid v1.3.0

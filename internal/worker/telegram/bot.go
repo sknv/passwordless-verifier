@@ -2,7 +2,6 @@ package telegram
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -32,8 +31,8 @@ func NewBot(config BotConfig) (*Bot, error) {
 		return nil, err
 	}
 
+	bot.Buffer = 0 // no buffering allowed for updates channel, control concurrency manually with a limiter
 	bot.Debug = config.Debug
-	fmt.Printf("Authorized on account %s", bot.Self.UserName)
 
 	return &Bot{
 		Config: config,
@@ -45,7 +44,6 @@ func NewBot(config BotConfig) (*Bot, error) {
 
 func (b *Bot) Run(ctx context.Context) {
 	updateConfig := tgbotapi.UpdateConfig{
-		Offset:  0, // TODO: fetch offset from the db
 		Limit:   b.Config.MaxUpdatesAllowed,
 		Timeout: int(b.Config.PollingTimeout.Seconds()),
 	}
@@ -64,6 +62,8 @@ func (b *Bot) Close(ctx context.Context) error {
 	return closer.CloseWithContext(ctx, func() error { return b.limit.WaitAndClose() })
 }
 
-func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
-	log.Extract(ctx).WithField("update", update).Info("handle update")
+func (b *Bot) handleUpdate(_ context.Context, update tgbotapi.Update) {
+	if update.Message == nil { // ignore empty messages
+		return
+	}
 }

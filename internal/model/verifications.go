@@ -4,20 +4,15 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/uptrace/bun"
 )
 
 type Verifications struct {
-	DB *bun.DB
+	DB DB
 }
 
 func (v *Verifications) FindByID(ctx context.Context, id uuid.UUID) (*Verification, error) {
 	verification := &Verification{}
-	err := v.DB.NewSelect().
-		Model(verification).
-		Where("id = ?", id).
-		Scan(ctx)
-	if err != nil {
+	if err := v.DB.Find(ctx, verification, "id = ?", id); err != nil {
 		return nil, ConvertDBError(err)
 	}
 

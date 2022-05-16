@@ -8,6 +8,7 @@ import (
 
 	"github.com/uptrace/bun"
 
+	repo "github.com/sknv/passwordless-verifier/internal/db"
 	"github.com/sknv/passwordless-verifier/internal/gateway/openapi"
 	"github.com/sknv/passwordless-verifier/internal/usecase"
 	"github.com/sknv/passwordless-verifier/internal/worker/telegram"
@@ -55,7 +56,8 @@ func main() {
 	}
 
 	// Register a server
-	makeHTTPServer(app, cfg, makeUsecase(db))
+	svc := makeUsecase(cfg, db)
+	makeHTTPServer(app, cfg, svc)
 
 	// Run the app
 	if err = runApp(app, applicationStartTimeout); err != nil {
@@ -106,9 +108,12 @@ func makeTelegramBot(app *application.Application, config *Config) error {
 	return nil
 }
 
-func makeUsecase(db *bun.DB) *usecase.Usecase {
+func makeUsecase(config *Config, db *bun.DB) *usecase.Usecase {
 	return &usecase.Usecase{
-		DB: db,
+		Config: usecase.Config{
+			DeeplinkFormat: config.Telegram.DeeplinkFormat,
+		},
+		DB: &repo.DB{DB: db},
 	}
 }
 

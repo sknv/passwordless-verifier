@@ -42,7 +42,7 @@ run:
 
 .PHONY: test
 test:
-	go test -cover -gcflags=all=-l ./...
+	go test -cover ./...
 
 .PHONY: tools
 tools:

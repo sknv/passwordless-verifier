@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
-	"github.com/uptrace/bun"
 	"go.opentelemetry.io/otel"
 
 	"github.com/sknv/passwordless-verifier/internal/model"
@@ -28,14 +26,11 @@ func (v NewVerification) Validate() error {
 	return nil
 }
 
-func (v NewVerification) ToVerification(db *bun.DB) *model.Verification {
-	return &model.Verification{
-		DB: db,
+func (v NewVerification) ToVerification(db model.DB) *model.Verification {
+	verification := model.NewVerification(db)
+	verification.Method = v.Method
 
-		ID:     uuid.New(),
-		Method: v.Method,
-		Status: model.VerificationStatusInProgress,
-	}
+	return verification
 }
 
 func (u *Usecase) CreateVerification(
@@ -53,7 +48,7 @@ func (u *Usecase) CreateVerification(
 	}
 
 	verification := newVerification.ToVerification(u.DB)
-	if err := verification.Create(ctx); err != nil {
+	if err := verification.Create(ctx, u.Config.DeeplinkFormat); err != nil {
 		return nil, fmt.Errorf("create verification: %w", err)
 	}
 

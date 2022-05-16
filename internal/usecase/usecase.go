@@ -1,11 +1,16 @@
 package usecase
 
 import (
-	"github.com/uptrace/bun"
+	"github.com/sknv/passwordless-verifier/internal/model"
 )
 
 const fieldParams = "params"
 
+type Config struct {
+	DeeplinkFormat string
+}
+
 type Usecase struct {
-	DB *bun.DB
+	Config Config
+	DB     model.DB
 }

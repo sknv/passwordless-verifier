@@ -40,6 +40,7 @@ type TelegramConfig struct {
 	APIToken          string          `toml:"api_token" env:"TELEGRAM_API_TOKEN"`
 	PollingTimeout    config.Duration `toml:"polling_timeout" env:"TELEGRAM_POLLING_TIMEOUT"`
 	MaxUpdatesAllowed int             `toml:"max_updates_allowed" env:"TELEGRAM_MAX_UPDATES_ALLOWED"`
+	DeeplinkFormat    string          `toml:"deeplink_format" env:"TELEGRAM_DEEPLINK_FORMAT"`
 	Debug             bool            `toml:"debug" env:"TELEGRAM_DEBUG"`
 }
 

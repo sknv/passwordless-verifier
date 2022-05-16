@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"testing"
 
-	"github.com/agiledragon/gomonkey/v2"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/uptrace/bun"
 )
 
 func TestVerificationMethod_Validate(t *testing.T) {
@@ -18,9 +18,8 @@ func TestVerificationMethod_Validate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "when allowed method is provided it returns no error",
-			m:       VerificationMethodTelegram,
-			wantErr: false,
+			name: "when allowed method is provided it returns no error",
+			m:    VerificationMethodTelegram,
 		},
 		{
 			name:    "when unknown method is provided it returns an error",
@@ -41,28 +40,42 @@ func TestVerificationMethod_Validate(t *testing.T) {
 
 func TestVerification_Create(t *testing.T) {
 	type fields struct {
-		db *bun.DB
+		db DB
+		id uuid.UUID
 	}
+	type args struct {
+		deeplinkFormat string
+	}
+
+	deeplinkFormat, id := "https://t.me/example_bot?start=%s", uuid.New()
 
 	tests := []struct {
 		name          string
 		prepareFields func() *fields
+		args          args
+		want          func(*fields) *Verification
 		wantErr       bool
 	}{
 		{
-			name: "it returns db call result",
+			name: "it creates deeplink, set status and returns db call result",
 			prepareFields: func() *fields {
-				insertQuery := &bun.InsertQuery{}
-				gomonkey.ApplyMethod(insertQuery, "Model", func(*bun.InsertQuery, interface{}) *bun.InsertQuery { return insertQuery })
-				gomonkey.ApplyMethod(insertQuery, "Exec", func(*bun.InsertQuery, context.Context, ...interface{}) (sql.Result, error) {
-					return nil, errors.New("any-error")
-				})
-
-				db := &bun.DB{}
-				gomonkey.ApplyMethod(db, "NewInsert", func(*bun.DB) *bun.InsertQuery { return insertQuery })
-
 				return &fields{
-					db: db,
+					db: &DBMock{
+						CreateFunc: func(context.Context, any) (sql.Result, error) { return nil, errors.New("any-error") },
+					},
+					id: id,
+				}
+			},
+			args: args{
+				deeplinkFormat: deeplinkFormat,
+			},
+			want: func(f *fields) *Verification {
+				return &Verification{
+					DB: f.db,
+
+					ID:       id,
+					Status:   VerificationStatusInProgress,
+					Deeplink: fmt.Sprintf(deeplinkFormat, id),
 				}
 			},
 			wantErr: true,
@@ -70,15 +83,23 @@ func TestVerification_Create(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			// Prepare fields
 			fields := tt.prepareFields()
 
 			v := &Verification{
 				DB: fields.db,
+
+				ID: id,
 			}
-			err := v.Create(context.Background())
-			assert.Equalf(t, tt.wantErr, err != nil, "Create()")
+			err := v.Create(context.Background(), tt.args.deeplinkFormat)
+			assert.Equalf(t, tt.wantErr, err != nil, "Create(ctx, %s)", tt.args.deeplinkFormat)
+			if tt.want != nil {
+				assert.Equalf(t, tt.want(fields), v, "Create(ctx, %v)", tt.args.deeplinkFormat)
+			}
 		})
 	}
 }

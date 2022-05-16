@@ -32,7 +32,7 @@ const (
 
 type Verification struct {
 	bun.BaseModel `bun:"table:verifications"`
-	DB            *bun.DB `bun:"-"`
+	DB            DB
 
 	ID        uuid.UUID          `bun:"id,nullzero"`
 	Method    VerificationMethod `bun:"method"`
@@ -42,9 +42,22 @@ type Verification struct {
 	UpdatedAt time.Time          `bun:"updated_at,nullzero"`
 }
 
-func (v *Verification) Create(ctx context.Context) error {
-	_, err := v.DB.NewInsert().
-		Model(v).
-		Exec(ctx)
+func NewVerification(db DB) *Verification {
+	return &Verification{
+		DB: db,
+
+		ID: uuid.New(),
+	}
+}
+
+func (v *Verification) Create(ctx context.Context, deeplinkFormat string) error {
+	v.Deeplink = v.formatDeeplink(deeplinkFormat)
+	v.Status = VerificationStatusInProgress
+
+	_, err := v.DB.Create(ctx, v)
 	return err
+}
+
+func (v *Verification) formatDeeplink(format string) string {
+	return fmt.Sprintf(format, v.ID)
 }
