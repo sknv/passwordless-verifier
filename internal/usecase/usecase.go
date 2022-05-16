@@ -10,7 +10,11 @@ type Config struct {
 	DeeplinkFormat string
 }
 
+type DB interface {
+	model.DB
+}
+
 type Usecase struct {
 	Config Config
-	DB     model.DB
+	DB     DB
 }

@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/google/uuid"
@@ -51,7 +53,7 @@ func TestNewVerification_ToVerification(t *testing.T) {
 		db model.DB
 	}
 
-	db := &model.DBMock{}
+	db := &DBMock{}
 
 	tests := []struct {
 		name   string
@@ -91,6 +93,86 @@ func TestNewVerification_ToVerification(t *testing.T) {
 				Method: tt.fields.method,
 			}
 			tt.want(t, v.ToVerification(tt.args.db), "ToVerification(%v)", tt.args.db)
+		})
+	}
+}
+
+func TestUsecase_CreateVerification(t *testing.T) {
+	type fields struct {
+		config Config
+		db     model.DB
+	}
+	type args struct {
+		newVerification *NewVerification
+	}
+
+	deeplinkFormat := "https://t.me/example_bot?start=%s"
+
+	tests := []struct {
+		name          string
+		prepareFields func() *fields
+		args          args
+		want          func(*fields) assert.ValueAssertionFunc
+		wantErr       bool
+	}{
+		{
+			name:          "when args are not valid it returns an error",
+			prepareFields: func() *fields { return &fields{} },
+			args: args{
+				newVerification: &NewVerification{},
+			},
+			wantErr: true,
+		},
+		{
+			name: "when args are valid it creates and returns a verification",
+			prepareFields: func() *fields {
+				return &fields{
+					config: Config{DeeplinkFormat: deeplinkFormat},
+					db: &DBMock{
+						CreateFunc: func(context.Context, any) (sql.Result, error) { return nil, nil },
+					},
+				}
+			},
+			args: args{
+				newVerification: &NewVerification{
+					Method: model.VerificationMethodTelegram,
+				},
+			},
+			want: func(f *fields) assert.ValueAssertionFunc {
+				return func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
+					want := &model.Verification{
+						DB: f.db,
+
+						Method: model.VerificationMethodTelegram,
+						Status: model.VerificationStatusInProgress,
+					}
+
+					got, _ := actual.(*model.Verification)
+					got.ID, got.Deeplink = uuid.UUID{}, "" // ignore fields when compare
+
+					return assert.Equal(t, want, got, msgAndArgs)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Prepare fields
+			fields := tt.prepareFields()
+
+			u := &Usecase{
+				Config: fields.config,
+				DB:     fields.db,
+			}
+			got, err := u.CreateVerification(context.Background(), tt.args.newVerification)
+			assert.Equalf(t, tt.wantErr, err != nil, "CreateVerification(ctx, %v)", tt.args.newVerification)
+			if tt.want != nil {
+				tt.want(fields)(t, got, "CreateVerification(ctx, %v)", tt.args.newVerification)
+			}
 		})
 	}
 }
