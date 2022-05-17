@@ -8,10 +8,10 @@ import (
 
 	"github.com/uptrace/bun"
 
+	"github.com/sknv/passwordless-verifier/internal/consumer/telegram"
 	repo "github.com/sknv/passwordless-verifier/internal/db"
 	"github.com/sknv/passwordless-verifier/internal/gateway/openapi"
 	"github.com/sknv/passwordless-verifier/internal/usecase"
-	"github.com/sknv/passwordless-verifier/internal/worker/telegram"
 	"github.com/sknv/passwordless-verifier/pkg/application"
 	"github.com/sknv/passwordless-verifier/pkg/http/server"
 	"github.com/sknv/passwordless-verifier/pkg/log"
@@ -70,7 +70,10 @@ func main() {
 }
 
 func makeLogger(app *application.Application, config *Config) {
-	app.RegisterLogger(log.Config{Level: config.LogConfig.Level})
+	app.RegisterLogger(log.Config{
+		Level:     config.LogConfig.Level,
+		Formatter: log.Formatter(config.LogConfig.Formatter),
+	})
 }
 
 func makeTracing(app *application.Application, config *Config) error {
@@ -125,7 +128,7 @@ func makeTelegramBot(app *application.Application, config *Config, usecase *usec
 		return err
 	}
 
-	app.RegisterWorker(bot)
+	app.RegisterConsumer(bot)
 	return nil
 }
 

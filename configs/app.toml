@@ -3,6 +3,7 @@ name = "passwordless_verifier"
 
 [log]
 level = "debug"
+formatter = "text"
 
 [http]
 address = ":8080"

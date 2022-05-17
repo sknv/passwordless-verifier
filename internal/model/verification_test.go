@@ -103,3 +103,75 @@ func TestVerification_Create(t *testing.T) {
 		})
 	}
 }
+
+func TestVerification_Update(t *testing.T) {
+	type fields struct {
+		db DB
+	}
+
+	tests := []struct {
+		name          string
+		prepareFields func() *fields
+		wantErr       bool
+	}{
+		{
+			name: "it returns db call result",
+			prepareFields: func() *fields {
+				return &fields{
+					db: &DBMock{
+						UpdateFunc: func(context.Context, any, ...string) (sql.Result, error) { return nil, errors.New("any-error") },
+					},
+				}
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Prepare fields
+			fields := tt.prepareFields()
+
+			v := &Verification{
+				DB: fields.db,
+			}
+			err := v.Update(context.Background())
+			assert.Equalf(t, tt.wantErr, err != nil, "Update(ctx)")
+		})
+	}
+}
+
+func TestVerification_SetChatID(t *testing.T) {
+	type args struct {
+		chatID int64
+	}
+
+	chatID := int64(1)
+
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "it sets chat id sql.NullInt64 value",
+			args: args{
+				chatID: chatID,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			v := &Verification{}
+			v.SetChatID(tt.args.chatID)
+			assert.Equalf(t, chatID, v.ChatID.Int64, "SetChatID(%v)", tt.args.chatID)
+			assert.Truef(t, v.ChatID.Valid, "SetChatID(%v)", tt.args.chatID)
+		})
+	}
+}

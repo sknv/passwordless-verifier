@@ -14,7 +14,7 @@ type Application struct {
 	ctx        context.Context
 	closers    *closer.Closers
 	httpServer *preparedHTTPServer
-	worker     Worker
+	consumer   Consumer
 }
 
 func NewApplication(ctx context.Context) *Application {
@@ -37,7 +37,7 @@ func (a *Application) Run() error {
 	if err := runParallel(
 		a.ctx,
 		a.runHTTPServer,
-		a.runWorker,
+		a.runConsumer,
 	); err != nil {
 		return err
 	}

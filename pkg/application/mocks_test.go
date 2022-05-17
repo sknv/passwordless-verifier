@@ -8,16 +8,16 @@ import (
 	"sync"
 )
 
-// Ensure, that WorkerMock does implement Worker.
+// Ensure, that ConsumerMock does implement Consumer.
 // If this is not the case, regenerate this file with moq.
-var _ Worker = &WorkerMock{}
+var _ Consumer = &ConsumerMock{}
 
-// WorkerMock is a mock implementation of Worker.
+// ConsumerMock is a mock implementation of Consumer.
 //
-// 	func TestSomethingThatUsesWorker(t *testing.T) {
+// 	func TestSomethingThatUsesConsumer(t *testing.T) {
 //
-// 		// make and configure a mocked Worker
-// 		mockedWorker := &WorkerMock{
+// 		// make and configure a mocked Consumer
+// 		mockedConsumer := &ConsumerMock{
 // 			CloseFunc: func(ctx context.Context) error {
 // 				panic("mock out the Close method")
 // 			},
@@ -26,11 +26,11 @@ var _ Worker = &WorkerMock{}
 // 			},
 // 		}
 //
-// 		// use mockedWorker in code that requires Worker
+// 		// use mockedConsumer in code that requires Consumer
 // 		// and then make assertions.
 //
 // 	}
-type WorkerMock struct {
+type ConsumerMock struct {
 	// CloseFunc mocks the Close method.
 	CloseFunc func(ctx context.Context) error
 
@@ -55,9 +55,9 @@ type WorkerMock struct {
 }
 
 // Close calls CloseFunc.
-func (mock *WorkerMock) Close(ctx context.Context) error {
+func (mock *ConsumerMock) Close(ctx context.Context) error {
 	if mock.CloseFunc == nil {
-		panic("WorkerMock.CloseFunc: method is nil but Worker.Close was just called")
+		panic("ConsumerMock.CloseFunc: method is nil but Consumer.Close was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
@@ -72,8 +72,8 @@ func (mock *WorkerMock) Close(ctx context.Context) error {
 
 // CloseCalls gets all the calls that were made to Close.
 // Check the length with:
-//     len(mockedWorker.CloseCalls())
-func (mock *WorkerMock) CloseCalls() []struct {
+//     len(mockedConsumer.CloseCalls())
+func (mock *ConsumerMock) CloseCalls() []struct {
 	Ctx context.Context
 } {
 	var calls []struct {
@@ -86,9 +86,9 @@ func (mock *WorkerMock) CloseCalls() []struct {
 }
 
 // Run calls RunFunc.
-func (mock *WorkerMock) Run(ctx context.Context) {
+func (mock *ConsumerMock) Run(ctx context.Context) {
 	if mock.RunFunc == nil {
-		panic("WorkerMock.RunFunc: method is nil but Worker.Run was just called")
+		panic("ConsumerMock.RunFunc: method is nil but Consumer.Run was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
@@ -103,8 +103,8 @@ func (mock *WorkerMock) Run(ctx context.Context) {
 
 // RunCalls gets all the calls that were made to Run.
 // Check the length with:
-//     len(mockedWorker.RunCalls())
-func (mock *WorkerMock) RunCalls() []struct {
+//     len(mockedConsumer.RunCalls())
+func (mock *ConsumerMock) RunCalls() []struct {
 	Ctx context.Context
 } {
 	var calls []struct {

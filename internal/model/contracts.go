@@ -8,4 +8,5 @@ import (
 type DB interface {
 	Create(ctx context.Context, model any) (sql.Result, error)
 	Find(ctx context.Context, dest any, where string, args ...any) error
+	Update(ctx context.Context, model any, columns ...string) (sql.Result, error)
 }

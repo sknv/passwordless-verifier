@@ -9,6 +9,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/korovkin/limiter"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel"
 
 	"github.com/sknv/passwordless-verifier/internal/model"
 	"github.com/sknv/passwordless-verifier/internal/usecase"
@@ -25,6 +26,7 @@ type BotConfig struct {
 
 type Usecase interface {
 	GetVerification(ctx context.Context, params *usecase.GetVerificationParams) (*model.Verification, error)
+	SetVerificationChatID(ctx context.Context, verification *model.Verification, chatID int64) error
 }
 
 type Bot struct {
@@ -61,7 +63,7 @@ func (b *Bot) Run(ctx context.Context) {
 
 	updates := b.bot.GetUpdatesChan(updateConfig)
 	for update := range updates {
-		if _, err := b.limit.Execute(func() { b.handleUpdate(ctx, update) }); err != nil {
+		if _, err := b.limit.Execute(func() { b.HandleUpdate(ctx, update) }); err != nil {
 			log.Extract(ctx).WithError(err).Error("execute telegram update handler")
 		}
 	}
@@ -73,13 +75,16 @@ func (b *Bot) Close(ctx context.Context) error {
 	return closer.CloseWithContext(ctx, func() error { return b.limit.WaitAndClose() })
 }
 
-func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
+func (b *Bot) HandleUpdate(ctx context.Context, update tgbotapi.Update) {
 	if update.Message == nil { // ignore empty messages
 		return
 	}
 
+	ctx, span := otel.Tracer("").Start(ctx, "telegram.HandleUpdate")
+	defer span.End()
+
 	logger := log.Extract(ctx).WithFields(logrus.Fields{
-		"from": update.Message.From,
+		"chat": update.Message.Chat,
 		"text": update.Message.Text,
 	})
 
@@ -98,9 +103,9 @@ func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 	}
 	if err != nil {
 		logger.WithError(err).Error("handle telegram update")
+	} else {
+		logger.Info("telegram update handled")
 	}
-
-	logger.Info("telegram update handled")
 }
 
 func (b *Bot) unknownCommand(message *tgbotapi.Message) error {

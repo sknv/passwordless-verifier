@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -34,10 +35,11 @@ type Verification struct {
 	bun.BaseModel `bun:"table:verifications"`
 	DB            DB `bun:"-"`
 
-	ID        uuid.UUID          `bun:"id,nullzero"`
+	ID        uuid.UUID          `bun:"id,pk,nullzero"`
 	Method    VerificationMethod `bun:"method"`
 	Status    VerificationStatus `bun:"status"`
 	Deeplink  string             `bun:"deeplink"`
+	ChatID    sql.NullInt64      `bun:"chat_id"`
 	CreatedAt time.Time          `bun:"created_at,nullzero"`
 	UpdatedAt time.Time          `bun:"updated_at,nullzero"`
 }
@@ -50,11 +52,22 @@ func NewVerification(db DB) *Verification {
 	}
 }
 
+func (v *Verification) SetChatID(chatID int64) {
+	v.ChatID.Int64, v.ChatID.Valid = chatID, true
+}
+
 func (v *Verification) Create(ctx context.Context, deeplinkFormat string) error {
 	v.Deeplink = v.formatDeeplink(deeplinkFormat)
 	v.Status = VerificationStatusInProgress
 
 	_, err := v.DB.Create(ctx, v)
+	return err
+}
+
+func (v *Verification) Update(ctx context.Context) error {
+	v.UpdatedAt = time.Now()
+
+	_, err := v.DB.Update(ctx, v, "status", "chat_id", "updated_at")
 	return err
 }
 

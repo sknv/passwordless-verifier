@@ -11,12 +11,14 @@ import (
 
 func TestBuild(t *testing.T) {
 	type args struct {
-		level   logrus.Level
-		options []Option
+		level     logrus.Level
+		formatter logrus.Formatter
+		options   []Option
 	}
 	type want struct {
-		level logrus.Level
-		out   io.Writer
+		level     logrus.Level
+		formatter logrus.Formatter
+		out       io.Writer
 	}
 
 	tests := []struct {
@@ -27,7 +29,8 @@ func TestBuild(t *testing.T) {
 		{
 			name: "it builds global logger and apply options successfully",
 			args: args{
-				level: logrus.DebugLevel,
+				level:     logrus.DebugLevel,
+				formatter: &logrus.JSONFormatter{},
 				options: []Option{
 					func(l *logrus.Logger) {
 						l.SetOutput(os.Stderr)
@@ -35,8 +38,9 @@ func TestBuild(t *testing.T) {
 				},
 			},
 			want: want{
-				level: logrus.DebugLevel,
-				out:   os.Stderr,
+				level:     logrus.DebugLevel,
+				formatter: &logrus.JSONFormatter{},
+				out:       os.Stderr,
 			},
 		},
 	}
@@ -46,11 +50,12 @@ func TestBuild(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			Build(tt.args.level, tt.args.options...)
+			Build(tt.args.level, tt.args.formatter, tt.args.options...)
 			assert.Equalf(t, tt.want, want{
-				level: L().Level,
-				out:   L().Out,
-			}, "Build(%v, %v)", tt.args.level, tt.args.options)
+				level:     L().Level,
+				formatter: L().Formatter,
+				out:       L().Out,
+			}, "Build(%v, %v, %v)", tt.args.level, tt.args.formatter, tt.args.options)
 		})
 	}
 }
@@ -77,7 +82,7 @@ func TestParseLevel(t *testing.T) {
 			args: args{
 				level: "unknown",
 			},
-			want: DefaultLevel,
+			want: logrus.InfoLevel,
 		},
 	}
 
@@ -87,6 +92,46 @@ func TestParseLevel(t *testing.T) {
 			t.Parallel()
 
 			assert.Equalf(t, tt.want, ParseLevel(tt.args.level), "ParseLevel(%v)", tt.args.level)
+		})
+	}
+}
+
+func TestGetFormatter(t *testing.T) {
+	type args struct {
+		formatter Formatter
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want assert.ValueAssertionFunc
+	}{
+		{
+			name: "when text formatter provided it returns a logrus.TextFormatter",
+			args: args{
+				formatter: FormatterText,
+			},
+			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
+				_, ok := actual.(*logrus.TextFormatter)
+				return assert.True(t, ok, msgAndArgs)
+			},
+		},
+		{
+			name: "when any other formatter provided it returns a default formatter",
+			args: args{},
+			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
+				_, ok := actual.(*logrus.JSONFormatter)
+				return assert.True(t, ok, msgAndArgs)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tt.want(t, GetFormatter(tt.args.formatter), "GetFormatter(%v)", tt.args.formatter)
 		})
 	}
 }

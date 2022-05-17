@@ -17,11 +17,12 @@ type AppConfig struct {
 }
 
 type LogConfig struct {
-	Level string `toml:"level" env:"LOG_LEVEL" default:"info"`
+	Level     string `toml:"level" env:"LOG_LEVEL"`
+	Formatter string `toml:"formatter" env:"LOG_FORMATTER"`
 }
 
 type HTTPConfig struct {
-	Address string `toml:"address" env:"HTTP_ADDRESS" default:":4000"`
+	Address string `toml:"address" env:"HTTP_ADDRESS" default:":8080"`
 }
 
 type JaegerConfig struct {

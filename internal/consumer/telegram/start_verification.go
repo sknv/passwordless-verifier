@@ -17,10 +17,12 @@ func (b *Bot) startVerification(ctx context.Context, message *tgbotapi.Message) 
 		if err := b.reply(message, msgStartInitiatedDirectly); err != nil {
 			return fmt.Errorf("reply uuid not found: %w", err)
 		}
+
+		return nil
 	}
 
 	// Try to find the verification
-	_, err := b.Usecase.GetVerification(ctx, &usecase.GetVerificationParams{ID: startUUID})
+	verification, err := b.Usecase.GetVerification(ctx, &usecase.GetVerificationParams{ID: startUUID})
 	if err != nil {
 		if replyErr := b.reply(message, msgStartNotFound); err != nil {
 			err = multierror.Append(err, replyErr)
@@ -29,20 +31,24 @@ func (b *Bot) startVerification(ctx context.Context, message *tgbotapi.Message) 
 		return err
 	}
 
-	// TODO: save telegram chat id for the verification
+	// Save telegram chat id for the verification
+	if err = b.Usecase.SetVerificationChatID(ctx, verification, message.Chat.ID); err != nil {
+		return fmt.Errorf("update verification: %w", err)
+	}
 
+	// Ask a user to share their contact
 	if err = b.shareContact(message); err != nil {
-		return fmt.Errorf("ask share contact: %w", err)
+		return fmt.Errorf("share contact: %w", err)
 	}
 
 	return nil
 }
 
 func (b *Bot) shareContact(to *tgbotapi.Message) error {
-	keyboard := tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{
+	keyboard := tgbotapi.NewOneTimeReplyKeyboard([]tgbotapi.KeyboardButton{
 		tgbotapi.NewKeyboardButtonContact(btnShareContactText),
 	})
-	msg := tgbotapi.NewMessage(to.Chat.ID, msgAskShareContact)
+	msg := tgbotapi.NewMessage(to.Chat.ID, msgShareContact)
 	msg.ReplyMarkup = keyboard
 
 	_, err := b.bot.Send(msg)

@@ -23,3 +23,11 @@ func (d *DB) Find(ctx context.Context, dest any, where string, args ...any) erro
 		Where(where, args...).
 		Scan(ctx)
 }
+
+func (d *DB) Update(ctx context.Context, model any, columns ...string) (sql.Result, error) {
+	return d.DB.NewUpdate().
+		Model(model).
+		Column(columns...).
+		WherePK().
+		Exec(ctx)
+}

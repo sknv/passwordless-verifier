@@ -10,7 +10,7 @@ import (
 	"github.com/sknv/passwordless-verifier/pkg/closer"
 )
 
-//go:generate moq -out mocks_test.go -fmt goimports . Worker
+//go:generate moq -out mocks_test.go -fmt goimports . Consumer
 
 func TestApplication_Context(t *testing.T) {
 	type fields struct {
@@ -80,7 +80,7 @@ func TestNewApplication(t *testing.T) {
 
 func TestApplication_Run(t *testing.T) {
 	type fields struct {
-		worker Worker
+		consumer Consumer
 	}
 
 	tests := []struct {
@@ -93,10 +93,10 @@ func TestApplication_Run(t *testing.T) {
 			prepareFields: func() *fields { return &fields{} },
 		},
 		{
-			name: "when a worker exists it runs it successfully",
+			name: "when a consumer exists it runs it successfully",
 			prepareFields: func() *fields {
 				return &fields{
-					worker: &WorkerMock{
+					consumer: &ConsumerMock{
 						RunFunc: func(context.Context) {},
 					},
 				}
@@ -113,9 +113,9 @@ func TestApplication_Run(t *testing.T) {
 			fields := tt.prepareFields()
 
 			a := &Application{
-				ctx:     context.Background(),
-				closers: &closer.Closers{},
-				worker:  fields.worker,
+				ctx:      context.Background(),
+				closers:  &closer.Closers{},
+				consumer: fields.consumer,
 			}
 			err := a.Run()
 			assert.Equalf(t, tt.wantErr, err != nil, "Run()")

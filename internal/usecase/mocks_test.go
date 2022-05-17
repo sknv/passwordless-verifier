@@ -25,6 +25,9 @@ var _ DB = &DBMock{}
 // 			FindFunc: func(ctx context.Context, dest any, where string, args ...any) error {
 // 				panic("mock out the Find method")
 // 			},
+// 			UpdateFunc: func(ctx context.Context, model any, columns ...string) (sql.Result, error) {
+// 				panic("mock out the Update method")
+// 			},
 // 		}
 //
 // 		// use mockedDB in code that requires DB
@@ -37,6 +40,9 @@ type DBMock struct {
 
 	// FindFunc mocks the Find method.
 	FindFunc func(ctx context.Context, dest any, where string, args ...any) error
+
+	// UpdateFunc mocks the Update method.
+	UpdateFunc func(ctx context.Context, model any, columns ...string) (sql.Result, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -58,9 +64,19 @@ type DBMock struct {
 			// Args is the args argument value.
 			Args []any
 		}
+		// Update holds details about calls to the Update method.
+		Update []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Model is the model argument value.
+			Model any
+			// Columns is the columns argument value.
+			Columns []string
+		}
 	}
 	lockCreate sync.RWMutex
 	lockFind   sync.RWMutex
+	lockUpdate sync.RWMutex
 }
 
 // Create calls CreateFunc.
@@ -138,5 +154,44 @@ func (mock *DBMock) FindCalls() []struct {
 	mock.lockFind.RLock()
 	calls = mock.calls.Find
 	mock.lockFind.RUnlock()
+	return calls
+}
+
+// Update calls UpdateFunc.
+func (mock *DBMock) Update(ctx context.Context, model any, columns ...string) (sql.Result, error) {
+	if mock.UpdateFunc == nil {
+		panic("DBMock.UpdateFunc: method is nil but DB.Update was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		Model   any
+		Columns []string
+	}{
+		Ctx:     ctx,
+		Model:   model,
+		Columns: columns,
+	}
+	mock.lockUpdate.Lock()
+	mock.calls.Update = append(mock.calls.Update, callInfo)
+	mock.lockUpdate.Unlock()
+	return mock.UpdateFunc(ctx, model, columns...)
+}
+
+// UpdateCalls gets all the calls that were made to Update.
+// Check the length with:
+//     len(mockedDB.UpdateCalls())
+func (mock *DBMock) UpdateCalls() []struct {
+	Ctx     context.Context
+	Model   any
+	Columns []string
+} {
+	var calls []struct {
+		Ctx     context.Context
+		Model   any
+		Columns []string
+	}
+	mock.lockUpdate.RLock()
+	calls = mock.calls.Update
+	mock.lockUpdate.RUnlock()
 	return calls
 }
