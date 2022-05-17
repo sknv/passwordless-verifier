@@ -62,15 +62,17 @@ func TestToVerification(t *testing.T) {
 			name: "it converts a usecase response to an http response",
 			args: args{
 				verification: &model.Verification{
-					ID:     verificationUUID,
-					Method: model.VerificationMethodTelegram,
-					Status: model.VerificationStatusInProgress,
+					ID:       verificationUUID,
+					Method:   model.VerificationMethodTelegram,
+					Deeplink: "https://t.me/example_bot?start=123",
+					Status:   model.VerificationStatusInProgress,
 				},
 			},
 			want: &openapi.Verification{
-				Id:     openapiTypes.UUID(verificationUUID.String()),
-				Method: openapi.VerificationMethodTelegram,
-				Status: openapi.VerificationStatusInProgress,
+				Id:       openapiTypes.UUID(verificationUUID.String()),
+				Method:   openapi.VerificationMethodTelegram,
+				Deeplink: "https://t.me/example_bot?start=123",
+				Status:   openapi.VerificationStatusInProgress,
 			},
 		},
 	}

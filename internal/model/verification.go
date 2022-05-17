@@ -32,7 +32,7 @@ const (
 
 type Verification struct {
 	bun.BaseModel `bun:"table:verifications"`
-	DB            DB
+	DB            DB `bun:"-"`
 
 	ID        uuid.UUID          `bun:"id,nullzero"`
 	Method    VerificationMethod `bun:"method"`
