@@ -17,7 +17,6 @@ func (b *Bot) startVerification(ctx context.Context, message *tgbotapi.Message) 
 		if err := b.reply(message, msgStartInitiatedDirectly); err != nil {
 			return fmt.Errorf("reply uuid not found: %w", err)
 		}
-
 		return nil
 	}
 
@@ -27,7 +26,6 @@ func (b *Bot) startVerification(ctx context.Context, message *tgbotapi.Message) 
 		if replyErr := b.reply(message, msgStartNotFound); err != nil {
 			err = multierror.Append(err, replyErr)
 		}
-
 		return err
 	}
 
@@ -40,7 +38,6 @@ func (b *Bot) startVerification(ctx context.Context, message *tgbotapi.Message) 
 	if err = b.shareContact(message); err != nil {
 		return fmt.Errorf("share contact: %w", err)
 	}
-
 	return nil
 }
 

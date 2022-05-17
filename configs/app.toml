@@ -23,4 +23,5 @@ api_token = ""
 polling_timeout = "1m"
 max_updates_allowed = 10
 deeplink_format = "https://t.me/passwordless_verifier_eJzn85_bot?start=%s"
+callback_url = "https://example.com"
 debug = true

@@ -122,6 +122,7 @@ func makeTelegramBot(app *application.Application, config *Config, usecase *usec
 		APIToken:          config.Telegram.APIToken,
 		PollingTimeout:    config.Telegram.PollingTimeout.Duration(),
 		MaxUpdatesAllowed: config.Telegram.MaxUpdatesAllowed,
+		CallbackURL:       config.Telegram.CallbackURL,
 		Debug:             config.Telegram.Debug,
 	}, usecase)
 	if err != nil {

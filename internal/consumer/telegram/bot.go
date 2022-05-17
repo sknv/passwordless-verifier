@@ -21,6 +21,7 @@ type BotConfig struct {
 	APIToken          string
 	PollingTimeout    time.Duration
 	MaxUpdatesAllowed int
+	CallbackURL       string
 	Debug             bool
 }
 
@@ -90,17 +91,23 @@ func (b *Bot) HandleUpdate(ctx context.Context, update tgbotapi.Update) {
 
 	var err error
 	switch { // route commands
-	case strings.Contains(update.Message.Text, "/start"):
+	case strings.Contains(update.Message.Text, "/start"): // verification started
 		err = b.startVerification(ctx, update.Message)
 		if err != nil {
-			err = fmt.Errorf("handle start verification: %w", err)
+			err = fmt.Errorf("start verification: %w", err)
+		}
+	case update.Message.Contact != nil: // contact shared
+		err = b.verifyContact(ctx, update.Message)
+		if err != nil {
+			err = fmt.Errorf("verify contact: %w", err)
 		}
 	default:
 		err = b.unknownCommand(update.Message)
 		if err != nil {
-			err = fmt.Errorf("handle unknown: %w", err)
+			err = fmt.Errorf("unknown command: %w", err)
 		}
 	}
+
 	if err != nil {
 		logger.WithError(err).Error("handle telegram update")
 	} else {
