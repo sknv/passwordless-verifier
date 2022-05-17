@@ -7,7 +7,7 @@ import (
 const fieldParams = "params"
 
 type Config struct {
-	DeeplinkFormat string
+	Deeplink string
 }
 
 type DB model.DB

@@ -95,10 +95,8 @@ func makeDB(app *application.Application, config *Config) (*bun.DB, error) {
 
 func makeUsecase(config *Config, db *bun.DB) *usecase.Usecase {
 	return &usecase.Usecase{
-		Config: usecase.Config{
-			DeeplinkFormat: config.Telegram.DeeplinkFormat,
-		},
-		DB: &repo.DB{DB: db},
+		Config: usecase.Config{Deeplink: config.Telegram.Deeplink},
+		DB:     &repo.DB{DB: db},
 	}
 }
 

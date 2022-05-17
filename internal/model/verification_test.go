@@ -44,10 +44,11 @@ func TestVerification_Create(t *testing.T) {
 		id uuid.UUID
 	}
 	type args struct {
-		deeplinkFormat string
+		deeplink string
 	}
 
-	deeplinkFormat, id := "https://t.me/example_bot?start=%s", uuid.New()
+	deeplink, id := "https://t.me/example_bot", uuid.New()
+	formattedDeeplink := fmt.Sprintf("%s?start=%s", deeplink, id)
 
 	tests := []struct {
 		name          string
@@ -67,7 +68,7 @@ func TestVerification_Create(t *testing.T) {
 				}
 			},
 			args: args{
-				deeplinkFormat: deeplinkFormat,
+				deeplink: deeplink,
 			},
 			want: func(f *fields) *Verification {
 				return &Verification{
@@ -75,7 +76,7 @@ func TestVerification_Create(t *testing.T) {
 
 					ID:       id,
 					Status:   VerificationStatusInProgress,
-					Deeplink: fmt.Sprintf(deeplinkFormat, id),
+					Deeplink: formattedDeeplink,
 				}
 			},
 			wantErr: true,
@@ -95,10 +96,10 @@ func TestVerification_Create(t *testing.T) {
 
 				ID: id,
 			}
-			err := v.Create(context.Background(), tt.args.deeplinkFormat)
-			assert.Equalf(t, tt.wantErr, err != nil, "Create(ctx, %s)", tt.args.deeplinkFormat)
+			err := v.Create(context.Background(), tt.args.deeplink)
+			assert.Equalf(t, tt.wantErr, err != nil, "Create(ctx, %s)", tt.args.deeplink)
 			if tt.want != nil {
-				assert.Equalf(t, tt.want(fields), v, "Create(ctx, %v)", tt.args.deeplinkFormat)
+				assert.Equalf(t, tt.want(fields), v, "Create(ctx, %v)", tt.args.deeplink)
 			}
 		})
 	}

@@ -99,14 +99,11 @@ func TestNewVerification_ToVerification(t *testing.T) {
 
 func TestUsecase_CreateVerification(t *testing.T) {
 	type fields struct {
-		config Config
-		db     model.DB
+		db model.DB
 	}
 	type args struct {
 		newVerification *NewVerification
 	}
-
-	deeplinkFormat := "https://t.me/example_bot?start=%s"
 
 	tests := []struct {
 		name          string
@@ -127,7 +124,6 @@ func TestUsecase_CreateVerification(t *testing.T) {
 			name: "when args are valid it creates and returns a verification",
 			prepareFields: func() *fields {
 				return &fields{
-					config: Config{DeeplinkFormat: deeplinkFormat},
 					db: &DBMock{
 						CreateFunc: func(context.Context, any) (sql.Result, error) { return nil, nil },
 					},
@@ -165,8 +161,7 @@ func TestUsecase_CreateVerification(t *testing.T) {
 			fields := tt.prepareFields()
 
 			u := &Usecase{
-				Config: fields.config,
-				DB:     fields.db,
+				DB: fields.db,
 			}
 			got, err := u.CreateVerification(context.Background(), tt.args.newVerification)
 			assert.Equalf(t, tt.wantErr, err != nil, "CreateVerification(ctx, %v)", tt.args.newVerification)

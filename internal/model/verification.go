@@ -56,8 +56,8 @@ func (v *Verification) SetChatID(chatID int64) {
 	v.ChatID.Int64, v.ChatID.Valid = chatID, true
 }
 
-func (v *Verification) Create(ctx context.Context, deeplinkFormat string) error {
-	v.Deeplink = v.formatDeeplink(deeplinkFormat)
+func (v *Verification) Create(ctx context.Context, deeplink string) error {
+	v.Deeplink = v.formatDeeplink(deeplink)
 	v.Status = VerificationStatusInProgress
 
 	_, err := v.DB.Create(ctx, v)
@@ -72,5 +72,5 @@ func (v *Verification) Update(ctx context.Context) error {
 }
 
 func (v *Verification) formatDeeplink(format string) string {
-	return fmt.Sprintf(format, v.ID)
+	return fmt.Sprintf("%s?start=%s", format, v.ID) // formatted deeplink should base on verification method
 }

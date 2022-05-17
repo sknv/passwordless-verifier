@@ -22,6 +22,6 @@ max_conn_lifetime = "10m"
 api_token = ""
 polling_timeout = "1m"
 max_updates_allowed = 10
-deeplink_format = "https://t.me/passwordless_verifier_eJzn85_bot?start=%s"
+deeplink = "https://t.me/passwordless_verifier_eJzn85_bot"
 callback_url = "https://example.com"
 debug = false

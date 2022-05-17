@@ -50,7 +50,7 @@ func (u *Usecase) CreateVerification(
 	}
 
 	verification := newVerification.ToVerification(u.DB)
-	if err := verification.Create(ctx, u.Config.DeeplinkFormat); err != nil {
+	if err := verification.Create(ctx, u.Config.Deeplink); err != nil {
 		return nil, fmt.Errorf("create verification: %w", err)
 	}
 

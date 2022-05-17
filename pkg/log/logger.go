@@ -8,7 +8,9 @@ import (
 
 type Formatter string
 
-const FormatterText Formatter = "text"
+const (
+	FormatterText Formatter = "text"
+)
 
 // Config is a logger config.
 type Config struct {
