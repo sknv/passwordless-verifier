@@ -77,7 +77,7 @@ func TestNewVerification_ToVerification(t *testing.T) {
 				}
 
 				got, _ := actual.(*model.Verification)
-				got.ID = uuid.UUID{} // ignore field when compare
+				got.ID = uuid.UUID{} // ignore fields when compare
 
 				return assert.Equal(t, want, got, msgAndArgs)
 			},

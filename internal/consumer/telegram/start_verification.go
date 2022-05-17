@@ -20,18 +20,18 @@ func (b *Bot) startVerification(ctx context.Context, message *tgbotapi.Message) 
 		return nil
 	}
 
-	// Try to find the verification
-	verification, err := b.Usecase.GetVerification(ctx, &usecase.GetVerificationParams{ID: startUUID})
+	// Save telegram chat id for the verification
+	err := b.Usecase.SetVerificationChat(ctx, &usecase.SetVerificationChatParams{
+		ID:     startUUID,
+		ChatID: message.Chat.ID,
+	})
 	if err != nil {
-		if replyErr := b.reply(message, msgStartNotFound); err != nil {
+		err = fmt.Errorf("set verification chat: %w", err)
+		if replyErr := b.reply(message, msgStartNotFound); replyErr != nil {
+			replyErr = fmt.Errorf("reply start not found: %w", replyErr)
 			err = multierror.Append(err, replyErr)
 		}
 		return err
-	}
-
-	// Save telegram chat id for the verification
-	if err = b.Usecase.SetVerificationChatID(ctx, verification, message.Chat.ID); err != nil {
-		return fmt.Errorf("update verification: %w", err)
 	}
 
 	// Ask a user to share their contact
