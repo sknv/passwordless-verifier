@@ -20,10 +20,7 @@ import (
 	"github.com/sknv/passwordless-verifier/pkg/tracing"
 )
 
-const (
-	applicationStartTimeout = time.Second * 30
-	applicationStopTimeout  = time.Second * 30
-)
+const applicationStopTimeout = time.Second * 30
 
 func main() {
 	configPath := ConfigFilePathFlag()
@@ -50,17 +47,17 @@ func main() {
 		logger.WithError(err).Fatal("register postgres")
 	}
 
-	// Register a telegram bot
-	if err = makeTelegramBot(app, cfg); err != nil {
-		logger.WithError(err).Fatal("register telegram bot")
-	}
-
 	// Register a server
 	svc := makeUsecase(cfg, db)
 	makeHTTPServer(app, cfg, svc)
 
+	// Register a telegram bot
+	if err = makeTelegramBot(app, cfg, svc); err != nil {
+		logger.WithError(err).Fatal("register telegram bot")
+	}
+
 	// Run the app
-	if err = runApp(app, applicationStartTimeout); err != nil {
+	if err = app.Run(); err != nil {
 		logger.WithError(err).Fatal("start application")
 	}
 
@@ -93,21 +90,6 @@ func makeDB(app *application.Application, config *Config) (*bun.DB, error) {
 	})
 }
 
-func makeTelegramBot(app *application.Application, config *Config) error {
-	bot, err := telegram.NewBot(telegram.BotConfig{
-		APIToken:          config.Telegram.APIToken,
-		PollingTimeout:    config.Telegram.PollingTimeout.Duration(),
-		MaxUpdatesAllowed: config.Telegram.MaxUpdatesAllowed,
-		Debug:             config.Telegram.Debug,
-	})
-	if err != nil {
-		return err
-	}
-
-	app.RegisterWorker(bot)
-	return nil
-}
-
 func makeUsecase(config *Config, db *bun.DB) *usecase.Usecase {
 	return &usecase.Usecase{
 		Config: usecase.Config{
@@ -132,11 +114,19 @@ func makeHTTPServer(app *application.Application, config *Config, usecase *useca
 	srv.Route(e)
 }
 
-func runApp(app *application.Application, timeout time.Duration) error {
-	ctx, cancel := context.WithTimeout(app.Context(), timeout)
-	defer cancel()
+func makeTelegramBot(app *application.Application, config *Config, usecase *usecase.Usecase) error {
+	bot, err := telegram.NewBot(telegram.BotConfig{
+		APIToken:          config.Telegram.APIToken,
+		PollingTimeout:    config.Telegram.PollingTimeout.Duration(),
+		MaxUpdatesAllowed: config.Telegram.MaxUpdatesAllowed,
+		Debug:             config.Telegram.Debug,
+	}, usecase)
+	if err != nil {
+		return err
+	}
 
-	return app.Run(ctx)
+	app.RegisterWorker(bot)
+	return nil
 }
 
 func stopApp(app *application.Application, timeout time.Duration) error {

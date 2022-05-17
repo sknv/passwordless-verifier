@@ -49,11 +49,11 @@ func (a *Application) runHTTPServer(ctx context.Context) {
 	}()
 
 	// Remember to stop the server
-	a.closers.Add(func(ctx context.Context) error {
+	a.closers.Add(func(closeCtx context.Context) error {
 		logger.Info("stopping http server...")
 		defer logger.Info("http server stopped")
 
-		if err := a.httpServer.server.Shutdown(ctx); err != nil {
+		if err := a.httpServer.server.Shutdown(closeCtx); err != nil {
 			return fmt.Errorf("shutdown http server: %w", err)
 		}
 

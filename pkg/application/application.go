@@ -30,12 +30,12 @@ func (a *Application) Context() context.Context {
 }
 
 // Run the application.
-func (a *Application) Run(ctx context.Context) error {
-	logger := log.Extract(ctx)
+func (a *Application) Run() error {
+	logger := log.Extract(a.ctx)
 	logger.Info("starting application...")
 
 	if err := runParallel(
-		ctx,
+		a.ctx,
 		a.runHTTPServer,
 		a.runWorker,
 	); err != nil {
@@ -60,14 +60,13 @@ func (a *Application) Stop(ctx context.Context) error {
 }
 
 func runParallel(ctx context.Context, fns ...func(context.Context)) error {
-	group, groupCtx := errgroup.WithContext(ctx)
+	group := &errgroup.Group{}
 	for _, fn := range fns {
 		fn := fn // remember to copy
 		group.Go(func() error {
-			fn(groupCtx)
+			fn(ctx)
 			return nil
 		})
 	}
-
 	return group.Wait()
 }

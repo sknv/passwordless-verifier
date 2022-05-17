@@ -2,6 +2,7 @@ package converter
 
 import (
 	"testing"
+	"time"
 
 	openapiTypes "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/google/uuid"
@@ -51,7 +52,7 @@ func TestToVerification(t *testing.T) {
 		verification *model.Verification
 	}
 
-	verificationUUID := uuid.New()
+	verificationUUID, now := uuid.New(), time.Now()
 
 	tests := []struct {
 		name string
@@ -62,17 +63,19 @@ func TestToVerification(t *testing.T) {
 			name: "it converts a usecase response to an http response",
 			args: args{
 				verification: &model.Verification{
-					ID:       verificationUUID,
-					Method:   model.VerificationMethodTelegram,
-					Deeplink: "https://t.me/example_bot?start=123",
-					Status:   model.VerificationStatusInProgress,
+					ID:        verificationUUID,
+					Method:    model.VerificationMethodTelegram,
+					Deeplink:  "https://t.me/example_bot?start=123",
+					Status:    model.VerificationStatusInProgress,
+					CreatedAt: now,
 				},
 			},
 			want: &openapi.Verification{
-				Id:       openapiTypes.UUID(verificationUUID.String()),
-				Method:   openapi.VerificationMethodTelegram,
-				Deeplink: "https://t.me/example_bot?start=123",
-				Status:   openapi.VerificationStatusInProgress,
+				Id:        openapiTypes.UUID(verificationUUID.String()),
+				Method:    openapi.VerificationMethodTelegram,
+				Deeplink:  "https://t.me/example_bot?start=123",
+				Status:    openapi.VerificationStatusInProgress,
+				CreatedAt: now,
 			},
 		},
 	}

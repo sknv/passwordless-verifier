@@ -31,11 +31,11 @@ func (a *Application) RegisterPostgres(
 	logger.Info("postgres checked")
 
 	// Remember to close the db connection
-	a.closers.Add(func(context.Context) error {
+	a.closers.Add(func(closeCtx context.Context) error {
 		logger.Info("closing postgres connection...")
 		defer logger.Info("postgres connection closed")
 
-		if err := closer.CloseWithContext(ctx, db.Close); err != nil {
+		if err := closer.CloseWithContext(closeCtx, db.Close); err != nil {
 			return fmt.Errorf("close postrgres: %w", err)
 		}
 

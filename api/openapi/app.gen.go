@@ -47,11 +47,12 @@ type Session struct {
 
 // Verification defines model for Verification.
 type Verification struct {
-	Deeplink string             `json:"deeplink"`
-	Id       openapi_types.UUID `json:"id"`
-	Method   VerificationMethod `json:"method"`
-	Session  *Session           `json:"session,omitempty"`
-	Status   VerificationStatus `json:"status"`
+	CreatedAt time.Time          `json:"createdAt"`
+	Deeplink  string             `json:"deeplink"`
+	Id        openapi_types.UUID `json:"id"`
+	Method    VerificationMethod `json:"method"`
+	Session   *Session           `json:"session,omitempty"`
+	Status    VerificationStatus `json:"status"`
 }
 
 // VerificationMethod defines model for VerificationMethod.

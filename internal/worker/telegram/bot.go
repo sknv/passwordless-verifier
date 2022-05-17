@@ -2,11 +2,16 @@ package telegram
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/korovkin/limiter"
+	"github.com/sirupsen/logrus"
 
+	"github.com/sknv/passwordless-verifier/internal/model"
+	"github.com/sknv/passwordless-verifier/internal/usecase"
 	"github.com/sknv/passwordless-verifier/pkg/closer"
 	"github.com/sknv/passwordless-verifier/pkg/log"
 )
@@ -18,14 +23,19 @@ type BotConfig struct {
 	Debug             bool
 }
 
+type Usecase interface {
+	GetVerification(ctx context.Context, params *usecase.GetVerificationParams) (*model.Verification, error)
+}
+
 type Bot struct {
-	Config BotConfig
+	Config  BotConfig
+	Usecase Usecase
 
 	bot   *tgbotapi.BotAPI
 	limit *limiter.ConcurrencyLimiter
 }
 
-func NewBot(config BotConfig) (*Bot, error) {
+func NewBot(config BotConfig, usecase Usecase) (*Bot, error) {
 	bot, err := tgbotapi.NewBotAPI(config.APIToken)
 	if err != nil {
 		return nil, err
@@ -35,7 +45,8 @@ func NewBot(config BotConfig) (*Bot, error) {
 	bot.Debug = config.Debug
 
 	return &Bot{
-		Config: config,
+		Config:  config,
+		Usecase: usecase,
 
 		bot:   bot,
 		limit: limiter.NewConcurrencyLimiter(config.MaxUpdatesAllowed),
@@ -51,7 +62,7 @@ func (b *Bot) Run(ctx context.Context) {
 	updates := b.bot.GetUpdatesChan(updateConfig)
 	for update := range updates {
 		if _, err := b.limit.Execute(func() { b.handleUpdate(ctx, update) }); err != nil {
-			log.Extract(ctx).WithError(err).Error("handle telegram update")
+			log.Extract(ctx).WithError(err).Error("execute telegram update handler")
 		}
 	}
 }
@@ -62,8 +73,43 @@ func (b *Bot) Close(ctx context.Context) error {
 	return closer.CloseWithContext(ctx, func() error { return b.limit.WaitAndClose() })
 }
 
-func (b *Bot) handleUpdate(_ context.Context, update tgbotapi.Update) {
+func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 	if update.Message == nil { // ignore empty messages
 		return
 	}
+
+	logger := log.Extract(ctx).WithFields(logrus.Fields{
+		"from": update.Message.From,
+		"text": update.Message.Text,
+	})
+
+	var err error
+	switch { // route commands
+	case strings.Contains(update.Message.Text, "/start"):
+		err = b.startVerification(ctx, update.Message)
+		if err != nil {
+			err = fmt.Errorf("handle start verification: %w", err)
+		}
+	default:
+		err = b.unknownCommand(update.Message)
+		if err != nil {
+			err = fmt.Errorf("handle unknown: %w", err)
+		}
+	}
+	if err != nil {
+		logger.WithError(err).Error("handle telegram update")
+	}
+
+	logger.Info("telegram update handled")
+}
+
+func (b *Bot) unknownCommand(message *tgbotapi.Message) error {
+	return b.reply(message, fmt.Sprintf(msgFormatUnknownCommand, message.Text))
+}
+
+func (b *Bot) reply(to *tgbotapi.Message, text string) error {
+	msg := tgbotapi.NewMessage(to.Chat.ID, text)
+
+	_, err := b.bot.Send(msg)
+	return err
 }

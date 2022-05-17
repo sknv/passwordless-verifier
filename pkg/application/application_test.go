@@ -117,8 +117,8 @@ func TestApplication_Run(t *testing.T) {
 				closers: &closer.Closers{},
 				worker:  fields.worker,
 			}
-			err := a.Run(context.Background())
-			assert.Equalf(t, tt.wantErr, err != nil, "Run(ctx)")
+			err := a.Run()
+			assert.Equalf(t, tt.wantErr, err != nil, "Run()")
 		})
 	}
 }

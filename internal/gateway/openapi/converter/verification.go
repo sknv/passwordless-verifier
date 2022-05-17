@@ -21,9 +21,10 @@ func FromNewVerification(newVerification *openapi.NewVerification) *usecase.NewV
 
 func ToVerification(verification *model.Verification) *openapi.Verification {
 	return &openapi.Verification{
-		Id:       openapiTypes.UUID(verification.ID.String()),
-		Method:   openapi.VerificationMethod(verification.Method),
-		Deeplink: verification.Deeplink,
-		Status:   verificationStatuses[verification.Status],
+		Id:        openapiTypes.UUID(verification.ID.String()),
+		Method:    openapi.VerificationMethod(verification.Method),
+		Deeplink:  verification.Deeplink,
+		Status:    verificationStatuses[verification.Status],
+		CreatedAt: verification.CreatedAt,
 	}
 }

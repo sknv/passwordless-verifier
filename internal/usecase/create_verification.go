@@ -17,10 +17,12 @@ type NewVerification struct {
 
 func (v NewVerification) Validate() error {
 	if err := v.Method.Validate(); err != nil {
-		return problem.BadRequest(problem.InvalidParam{
+		badRequest := problem.BadRequest(problem.InvalidParam{
 			Name:    "method",
 			Message: err.Error(),
 		})
+		badRequest.Err = err
+		return badRequest
 	}
 
 	return nil

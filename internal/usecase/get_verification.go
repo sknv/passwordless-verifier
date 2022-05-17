@@ -18,10 +18,12 @@ type GetVerificationParams struct {
 
 func (p GetVerificationParams) Validate() error {
 	if _, err := uuid.Parse(p.ID); err != nil {
-		return problem.BadRequest(problem.InvalidParam{
+		badRequest := problem.BadRequest(problem.InvalidParam{
 			Name:    "id",
 			Message: err.Error(),
 		})
+		badRequest.Err = err
+		return badRequest
 	}
 
 	return nil

@@ -28,11 +28,11 @@ func (a *Application) runWorker(ctx context.Context) {
 	go a.worker.Run(ctx) // start in its own goroutine
 
 	// Remember to stop the worker
-	a.closers.Add(func(ctx context.Context) error {
+	a.closers.Add(func(closeCtx context.Context) error {
 		logger.Info("stopping worker...")
 		defer logger.Info("worker stopped")
 
-		if err := a.worker.Close(ctx); err != nil {
+		if err := a.worker.Close(closeCtx); err != nil {
 			return fmt.Errorf("stop worker: %w", err)
 		}
 
