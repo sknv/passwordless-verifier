@@ -1,2 +1,16 @@
 # passwordless-verifier
-A service to verify user credentials during the passwordless authentication
+
+Микросервис для аутентификации пользователей по номеру телефона.
+
+Доступные на данный момент методы верификации:
+
+  * Телеграм
+
+[Описание контракта](/api/openapi/app.yaml) сервиса в формате OpenAPI v3.
+
+## Зависимости
+
+* PostgreSQL / CockroachDB
+* Jaeger
+
+[Пример конфигурации сервиса](/configs/app.toml)
