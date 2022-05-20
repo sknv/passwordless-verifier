@@ -10,6 +10,8 @@ import (
 	"github.com/sknv/passwordless-verifier/pkg/closer"
 )
 
+//go:generate moq -out mocks_test.go -fmt goimports . Consumer
+
 func TestApplication_Context(t *testing.T) {
 	type fields struct {
 		ctx context.Context
@@ -60,9 +62,8 @@ func TestNewApplication(t *testing.T) {
 				ctx: context.Background(),
 			},
 			want: &Application{
-				Closers: &closer.Closers{},
-
-				ctx: context.Background(),
+				ctx:     context.Background(),
+				closers: &closer.Closers{},
 			},
 		},
 	}
@@ -78,12 +79,28 @@ func TestNewApplication(t *testing.T) {
 }
 
 func TestApplication_Run(t *testing.T) {
+	type fields struct {
+		consumer Consumer
+	}
+
 	tests := []struct {
-		name    string
-		wantErr bool
+		name          string
+		prepareFields func() *fields
+		wantErr       bool
 	}{
 		{
-			name: "when no component is registered it runs successfully",
+			name:          "when no component is registered it runs successfully",
+			prepareFields: func() *fields { return &fields{} },
+		},
+		{
+			name: "when a consumer exists it runs it successfully",
+			prepareFields: func() *fields {
+				return &fields{
+					consumer: &ConsumerMock{
+						RunFunc: func(context.Context) {},
+					},
+				}
+			},
 		},
 	}
 
@@ -92,12 +109,16 @@ func TestApplication_Run(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			// Prepare fields
+			fields := tt.prepareFields()
+
 			a := &Application{
-				Closers: &closer.Closers{},
-				ctx:     context.Background(),
+				ctx:      context.Background(),
+				closers:  &closer.Closers{},
+				consumer: fields.consumer,
 			}
-			err := a.Run(context.Background())
-			assert.Equalf(t, tt.wantErr, err != nil, "Run(ctx)")
+			err := a.Run()
+			assert.Equalf(t, tt.wantErr, err != nil, "Run()")
 		})
 	}
 }
@@ -143,8 +164,8 @@ func TestApplication_Stop(t *testing.T) {
 			}
 
 			a := &Application{
-				Closers: closers,
 				ctx:     context.Background(),
+				closers: closers,
 			}
 			err := a.Stop(context.Background())
 			assert.Equalf(t, tt.wantErr, err != nil, "Stop(ctx)")

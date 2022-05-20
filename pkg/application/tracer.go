@@ -17,13 +17,13 @@ func (a *Application) RegisterTracing(config tracing.Config) error {
 	}
 
 	// Remember to flush tracer, if any
-	a.Closers.Add(func(ctx context.Context) error {
-		logger := log.Extract(ctx)
+	a.closers.Add(func(closeCtx context.Context) error {
+		logger := log.Extract(closeCtx)
 		logger.Info("flushing tracer...")
 		defer logger.Info("tracer flushed")
 
 		provider, _ := otel.GetTracerProvider().(*tracesdk.TracerProvider)
-		if err := provider.Shutdown(ctx); err != nil {
+		if err := provider.Shutdown(closeCtx); err != nil {
 			return fmt.Errorf("shutdown tracer: %w", err)
 		}
 

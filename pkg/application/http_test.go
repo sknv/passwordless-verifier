@@ -33,8 +33,8 @@ func TestApplication_RegisterHTTPServer(t *testing.T) {
 			t.Parallel()
 
 			a := &Application{
-				Closers: &closer.Closers{},
 				ctx:     context.Background(),
+				closers: &closer.Closers{},
 			}
 			got := a.RegisterHTTPServer(tt.args.config, tt.args.opts...)
 			assert.Equalf(t, tt.wantPresent, got != nil, "RegisterHTTPServer(%v, %v)", tt.args.config, tt.args.opts)

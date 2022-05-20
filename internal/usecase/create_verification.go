@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/uptrace/bun"
 	"go.opentelemetry.io/otel"
 
 	"github.com/sknv/passwordless-verifier/internal/model"
@@ -19,23 +18,15 @@ type NewVerification struct {
 
 func (v NewVerification) Validate() error {
 	if err := v.Method.Validate(); err != nil {
-		return problem.BadRequest(problem.InvalidParam{
+		badRequest := problem.BadRequest(problem.InvalidParam{
 			Name:    "method",
 			Message: err.Error(),
 		})
+		badRequest.Err = err
+		return badRequest
 	}
 
 	return nil
-}
-
-func (v NewVerification) ToVerification(db *bun.DB) *model.Verification {
-	return &model.Verification{
-		DB: db,
-
-		ID:     uuid.New(),
-		Method: v.Method,
-		Status: model.VerificationStatusInProgress,
-	}
 }
 
 func (u *Usecase) CreateVerification(
@@ -52,9 +43,15 @@ func (u *Usecase) CreateVerification(
 		return nil, fmt.Errorf("validate params: %w", err)
 	}
 
-	verification := newVerification.ToVerification(u.DB)
-	if err := verification.Create(ctx); err != nil {
-		return nil, fmt.Errorf("create verification: %w", err)
+	verificationID := uuid.New()
+	verification := &model.Verification{
+		ID:       verificationID,
+		Method:   newVerification.Method,
+		Deeplink: model.FormatDeeplink(u.Config.Deeplink, verificationID),
+		Status:   model.VerificationStatusInProgress,
+	}
+	if err := u.Store.CreateVerification(ctx, verification); err != nil {
+		return nil, fmt.Errorf("create verification: %w", ConvertStoreError(err))
 	}
 
 	return verification, nil

@@ -3,12 +3,13 @@ module github.com/sknv/passwordless-verifier
 go 1.18
 
 require (
-	github.com/agiledragon/gomonkey/v2 v2.7.0
 	github.com/deepmap/oapi-codegen v1.10.1
+	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jinzhu/configor v1.2.1
 	github.com/json-iterator/go v1.1.12
+	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 	github.com/labstack/echo-contrib v0.12.0
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/labstack/gommon v0.3.1
@@ -22,6 +23,7 @@ require (
 	go.opentelemetry.io/otel/exporters/jaeger v1.7.0
 	go.opentelemetry.io/otel/sdk v1.7.0
 	go.opentelemetry.io/otel/trace v1.7.0
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 )
 
 require (

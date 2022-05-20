@@ -1,11 +1,12 @@
 package usecase
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/uptrace/bun"
 
 	"github.com/sknv/passwordless-verifier/internal/model"
 )
@@ -44,42 +45,53 @@ func TestNewVerification_Validate(t *testing.T) {
 	}
 }
 
-func TestNewVerification_ToVerification(t *testing.T) {
+func TestUsecase_CreateVerification(t *testing.T) {
 	type fields struct {
-		method model.VerificationMethod
+		store Store
 	}
 	type args struct {
-		db *bun.DB
+		newVerification *NewVerification
 	}
 
-	db := &bun.DB{}
-
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   assert.ValueAssertionFunc
+		name          string
+		prepareFields func() *fields
+		args          args
+		want          assert.ValueAssertionFunc
+		wantErr       bool
 	}{
 		{
-			name: "it constructs a new verification",
-			fields: fields{
-				method: model.VerificationMethodTelegram,
+			name:          "when args are not valid it returns an error",
+			prepareFields: func() *fields { return &fields{} },
+			args: args{
+				newVerification: &NewVerification{},
+			},
+			wantErr: true,
+		},
+		{
+			name: "when args are valid it creates and returns a verification",
+			prepareFields: func() *fields {
+				return &fields{
+					store: &StoreMock{
+						CreateVerificationFunc: func(context.Context, *model.Verification) error { return nil },
+					},
+				}
 			},
 			args: args{
-				db: db,
+				newVerification: &NewVerification{
+					Method: model.VerificationMethodTelegram,
+				},
 			},
 			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
 				want := &model.Verification{
-					DB: db,
-
 					Method: model.VerificationMethodTelegram,
 					Status: model.VerificationStatusInProgress,
 				}
 
 				got, _ := actual.(*model.Verification)
-				got.ID = uuid.UUID{} // ignore id field when compare
+				got.ID, got.Deeplink, got.CreatedAt = uuid.UUID{}, "", time.Time{} // ignore fields when compare
 
-				return assert.Equal(t, want, got, msgAndArgs)
+				return assert.Equal(t, want, got, msgAndArgs...)
 			},
 		},
 	}
@@ -89,10 +101,17 @@ func TestNewVerification_ToVerification(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			v := NewVerification{
-				Method: tt.fields.method,
+			// Prepare fields
+			fields := tt.prepareFields()
+
+			u := &Usecase{
+				Store: fields.store,
 			}
-			tt.want(t, v.ToVerification(tt.args.db), "ToVerification(%v)", tt.args.db)
+			got, err := u.CreateVerification(context.Background(), tt.args.newVerification)
+			assert.Equalf(t, tt.wantErr, err != nil, "CreateVerification(ctx, %v)", tt.args.newVerification)
+			if tt.want != nil {
+				tt.want(t, got, "CreateVerification(ctx, %v)", tt.args.newVerification)
+			}
 		})
 	}
 }

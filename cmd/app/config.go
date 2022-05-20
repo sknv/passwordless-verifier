@@ -17,11 +17,12 @@ type AppConfig struct {
 }
 
 type LogConfig struct {
-	Level string `toml:"level" env:"LOG_LEVEL" default:"info"`
+	Level     string `toml:"level" env:"LOG_LEVEL"`
+	Formatter string `toml:"formatter" env:"LOG_FORMATTER"`
 }
 
 type HTTPConfig struct {
-	Address string `toml:"address" env:"HTTP_ADDRESS" default:":4000"`
+	Address string `toml:"address" env:"HTTP_ADDRESS" default:":8080"`
 }
 
 type JaegerConfig struct {
@@ -36,12 +37,22 @@ type PostgresConfig struct {
 	MaxConnLifetime config.Duration `toml:"max_conn_lifetime" env:"POSTGRES_MAX_CONN_LIFETIME"`
 }
 
+type TelegramConfig struct {
+	APIToken          string          `toml:"api_token" env:"TELEGRAM_API_TOKEN"`
+	PollingTimeout    config.Duration `toml:"polling_timeout" env:"TELEGRAM_POLLING_TIMEOUT"`
+	MaxUpdatesAllowed int             `toml:"max_updates_allowed" env:"TELEGRAM_MAX_UPDATES_ALLOWED"`
+	Deeplink          string          `toml:"deeplink" env:"TELEGRAM_DEEPLINK"`
+	CallbackURL       string          `toml:"callback_url" env:"TELEGRAM_CALLBACK_URL"`
+	Debug             bool            `toml:"debug" env:"TELEGRAM_DEBUG"`
+}
+
 type Config struct {
 	App       AppConfig      `toml:"app"`
 	LogConfig LogConfig      `toml:"log"`
 	HTTP      HTTPConfig     `toml:"http"`
 	Jaeger    JaegerConfig   `toml:"jaeger"`
 	Postgres  PostgresConfig `toml:"postgres"`
+	Telegram  TelegramConfig `toml:"telegram"`
 }
 
 func ParseConfig(filePath string) (*Config, error) {

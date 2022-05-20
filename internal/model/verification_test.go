@@ -1,14 +1,11 @@
 package model
 
 import (
-	"context"
-	"database/sql"
-	"errors"
+	"fmt"
 	"testing"
 
-	"github.com/agiledragon/gomonkey/v2"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/uptrace/bun"
 )
 
 func TestVerificationMethod_Validate(t *testing.T) {
@@ -18,9 +15,8 @@ func TestVerificationMethod_Validate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "when allowed method is provided it returns no error",
-			m:       VerificationMethodTelegram,
-			wantErr: false,
+			name: "when allowed method is provided it returns no error",
+			m:    VerificationMethodTelegram,
 		},
 		{
 			name:    "when unknown method is provided it returns an error",
@@ -39,46 +35,92 @@ func TestVerificationMethod_Validate(t *testing.T) {
 	}
 }
 
-func TestVerification_Create(t *testing.T) {
-	type fields struct {
-		db *bun.DB
+func TestFormatDeeplink(t *testing.T) {
+	type args struct {
+		deeplink       string
+		verificationID uuid.UUID
 	}
 
+	deeplink, verificationID := "https://t.me/example_bot", uuid.New()
+
 	tests := []struct {
-		name          string
-		prepareFields func() *fields
-		wantErr       bool
+		name string
+		args args
+		want string
 	}{
 		{
-			name: "it returns db call result",
-			prepareFields: func() *fields {
-				insertQuery := &bun.InsertQuery{}
-				gomonkey.ApplyMethod(insertQuery, "Model", func(*bun.InsertQuery, interface{}) *bun.InsertQuery { return insertQuery })
-				gomonkey.ApplyMethod(insertQuery, "Exec", func(*bun.InsertQuery, context.Context, ...interface{}) (sql.Result, error) {
-					return nil, errors.New("any-error")
-				})
-
-				db := &bun.DB{}
-				gomonkey.ApplyMethod(db, "NewInsert", func(*bun.DB) *bun.InsertQuery { return insertQuery })
-
-				return &fields{
-					db: db,
-				}
+			name: "it returns an expected format",
+			args: args{
+				deeplink:       deeplink,
+				verificationID: verificationID,
 			},
-			wantErr: true,
+			want: fmt.Sprintf("%s?start=%s", deeplink, verificationID),
 		},
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			// Prepare fields
-			fields := tt.prepareFields()
+			t.Parallel()
+
+			got := FormatDeeplink(tt.args.deeplink, tt.args.verificationID)
+			assert.Equalf(t, tt.want, got, "FormatDeeplink(%v, %v)", tt.args.deeplink, tt.args.verificationID)
+		})
+	}
+}
+
+func TestVerification_LogIn(t *testing.T) {
+	type fields struct {
+		id uuid.UUID
+	}
+	type args struct {
+		phoneNumber string
+	}
+
+	verificationID, phone := uuid.New(), "+79001002030"
+
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   assert.ValueAssertionFunc
+	}{
+		{
+			name: "it sets all the fields successfully",
+			fields: fields{
+				id: verificationID,
+			},
+			args: args{
+				phoneNumber: phone,
+			},
+			want: func(t assert.TestingT, actual interface{}, msgAndArgs ...interface{}) bool {
+				want := &Verification{
+					ID:     verificationID,
+					Status: VerificationStatusCompleted,
+					Session: &Session{
+						VerificationID: verificationID,
+						PhoneNumber:    phone,
+					},
+				}
+
+				got, _ := actual.(*Verification)
+				got.Session.ID = uuid.UUID{} // ignore fields when compare
+
+				return assert.Equal(t, want, got, msgAndArgs...)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			v := &Verification{
-				DB: fields.db,
+				ID: tt.fields.id,
 			}
-			err := v.Create(context.Background())
-			assert.Equalf(t, tt.wantErr, err != nil, "Create()")
+			v.LogIn(tt.args.phoneNumber)
+			tt.want(t, v, "LogIn(%v)", tt.args.phoneNumber)
 		})
 	}
 }

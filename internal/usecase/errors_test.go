@@ -1,4 +1,4 @@
-package model
+package usecase
 
 import (
 	"database/sql"
@@ -12,7 +12,7 @@ import (
 	"github.com/sknv/passwordless-verifier/pkg/http/problem"
 )
 
-func TestConvertDBError(t *testing.T) {
+func TestConvertStoreError(t *testing.T) {
 	type args struct {
 		err error
 	}
@@ -32,7 +32,7 @@ func TestConvertDBError(t *testing.T) {
 			wantErr: func(t assert.TestingT, err error, msgAndArgs ...any) bool {
 				var prb *problem.Problem
 				return errors.As(err, &prb) &&
-					assert.Equal(t, http.StatusUnprocessableEntity, prb.Status, msgAndArgs)
+					assert.Equal(t, http.StatusUnprocessableEntity, prb.Status, msgAndArgs...)
 			},
 		},
 		{
@@ -51,7 +51,7 @@ func TestConvertDBError(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			tt.wantErr(t, ConvertDBError(tt.args.err), fmt.Sprintf("ConvertDBError(%v)", tt.args.err))
+			tt.wantErr(t, ConvertStoreError(tt.args.err), fmt.Sprintf("ConvertStoreError(%v)", tt.args.err))
 		})
 	}
 }

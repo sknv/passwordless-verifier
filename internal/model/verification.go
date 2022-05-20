@@ -1,7 +1,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -30,21 +29,30 @@ const (
 	VerificationStatusCompleted  VerificationStatus = "completed"
 )
 
+func FormatDeeplink(deeplink string, verificationID uuid.UUID) string {
+	return fmt.Sprintf("%s?start=%s", deeplink, verificationID)
+}
+
 type Verification struct {
 	bun.BaseModel `bun:"table:verifications"`
-	DB            *bun.DB `bun:"-"`
 
-	ID        uuid.UUID          `bun:"id,nullzero"`
+	ID        uuid.UUID          `bun:"id,pk,nullzero"`
 	Method    VerificationMethod `bun:"method"`
 	Status    VerificationStatus `bun:"status"`
 	Deeplink  string             `bun:"deeplink"`
+	ChatID    int64              `bun:"chat_id,nullzero"`
 	CreatedAt time.Time          `bun:"created_at,nullzero"`
 	UpdatedAt time.Time          `bun:"updated_at,nullzero"`
+
+	// Relations
+	Session *Session `bun:"rel:has-one"`
 }
 
-func (v *Verification) Create(ctx context.Context) error {
-	_, err := v.DB.NewInsert().
-		Model(v).
-		Exec(ctx)
-	return err
+func (v *Verification) LogIn(phoneNumber string) {
+	v.Status = VerificationStatusCompleted
+	v.Session = &Session{
+		ID:             uuid.New(),
+		VerificationID: v.ID,
+		PhoneNumber:    phoneNumber,
+	}
 }

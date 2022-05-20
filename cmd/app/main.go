@@ -8,7 +8,9 @@ import (
 
 	"github.com/uptrace/bun"
 
+	"github.com/sknv/passwordless-verifier/internal/consumer/telegram"
 	"github.com/sknv/passwordless-verifier/internal/gateway/openapi"
+	"github.com/sknv/passwordless-verifier/internal/store"
 	"github.com/sknv/passwordless-verifier/internal/usecase"
 	"github.com/sknv/passwordless-verifier/pkg/application"
 	"github.com/sknv/passwordless-verifier/pkg/http/server"
@@ -18,10 +20,7 @@ import (
 	"github.com/sknv/passwordless-verifier/pkg/tracing"
 )
 
-const (
-	applicationStartTimeout = time.Second * 30
-	applicationStopTimeout  = time.Second * 30
-)
+const _applicationStopTimeout = time.Second * 30
 
 func main() {
 	configPath := ConfigFilePathFlag()
@@ -49,23 +48,32 @@ func main() {
 	}
 
 	// Register a server
-	makeHTTPServer(app, cfg, makeUsecase(db))
+	svc := makeUsecase(cfg, db)
+	makeHTTPServer(app, cfg, svc)
+
+	// Register a telegram bot
+	if err = makeTelegramBot(app, cfg, svc); err != nil {
+		logger.WithError(err).Fatal("register telegram bot")
+	}
 
 	// Run the app
-	if err = runApp(app, applicationStartTimeout); err != nil {
+	if err = app.Run(); err != nil {
 		logger.WithError(err).Fatal("start application")
 	}
 
 	<-os.NotifyAboutExit() // wait for the program exit
 
 	// Close the app applying deferred closers
-	if err = stopApp(app, applicationStopTimeout); err != nil {
+	if err = stopApp(app, _applicationStopTimeout); err != nil {
 		logger.WithError(err).Error("stop application")
 	}
 }
 
 func makeLogger(app *application.Application, config *Config) {
-	app.RegisterLogger(log.Config{Level: config.LogConfig.Level})
+	app.RegisterLogger(log.Config{
+		Level:     config.LogConfig.Level,
+		Formatter: log.Formatter(config.LogConfig.Formatter),
+	})
 }
 
 func makeTracing(app *application.Application, config *Config) error {
@@ -85,9 +93,10 @@ func makeDB(app *application.Application, config *Config) (*bun.DB, error) {
 	})
 }
 
-func makeUsecase(db *bun.DB) *usecase.Usecase {
+func makeUsecase(config *Config, db *bun.DB) *usecase.Usecase {
 	return &usecase.Usecase{
-		DB: db,
+		Config: usecase.Config{Deeplink: config.Telegram.Deeplink},
+		Store:  &store.DB{DB: db},
 	}
 }
 
@@ -106,11 +115,20 @@ func makeHTTPServer(app *application.Application, config *Config, usecase *useca
 	srv.Route(e)
 }
 
-func runApp(app *application.Application, timeout time.Duration) error {
-	ctx, cancel := context.WithTimeout(app.Context(), timeout)
-	defer cancel()
+func makeTelegramBot(app *application.Application, config *Config, usecase *usecase.Usecase) error {
+	bot, err := telegram.NewBot(telegram.BotConfig{
+		APIToken:          config.Telegram.APIToken,
+		PollingTimeout:    config.Telegram.PollingTimeout.Duration(),
+		MaxUpdatesAllowed: config.Telegram.MaxUpdatesAllowed,
+		CallbackURL:       config.Telegram.CallbackURL,
+		Debug:             config.Telegram.Debug,
+	}, usecase)
+	if err != nil {
+		return err
+	}
 
-	return app.Run(ctx)
+	app.RegisterConsumer(bot)
+	return nil
 }
 
 func stopApp(app *application.Application, timeout time.Duration) error {

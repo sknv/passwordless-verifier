@@ -32,28 +32,28 @@ type preparedHTTPServer struct {
 	server  *echo.Echo
 }
 
-func (a *Application) runHTTPServer(ctx context.Context, srv *preparedHTTPServer) {
-	if srv == nil {
+func (a *Application) runHTTPServer(ctx context.Context) {
+	if a.httpServer == nil {
 		return // no HTTP server registered
 	}
 
-	logger := log.Extract(ctx).WithField("address", srv.address)
+	logger := log.Extract(ctx).WithField("address", a.httpServer.address)
 	logger.Info("starting http server...")
 	defer logger.Info("http server started")
 
 	go func() {
 		//nolint:errorlint // expect exactly the specified error
-		if err := srv.server.Start(srv.address); err != nil && err != http.ErrServerClosed {
+		if err := a.httpServer.server.Start(a.httpServer.address); err != nil && err != http.ErrServerClosed {
 			logger.WithError(err).Fatal("start http server")
 		}
 	}()
 
 	// Remember to stop the server
-	a.Closers.Add(func(ctx context.Context) error {
+	a.closers.Add(func(closeCtx context.Context) error {
 		logger.Info("stopping http server...")
 		defer logger.Info("http server stopped")
 
-		if err := srv.server.Shutdown(ctx); err != nil {
+		if err := a.httpServer.server.Shutdown(closeCtx); err != nil {
 			return fmt.Errorf("shutdown http server: %w", err)
 		}
 

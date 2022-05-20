@@ -60,7 +60,7 @@ func LoggerWithConfig(config LoggerConfig) echo.MiddlewareFunc {
 				"latency_human": latency.String(),
 				"bytes_in":      req.Header.Get(echo.HeaderContentLength),
 				"bytes_out":     res.Size,
-			}).Info("http request")
+			}).Info("http request handled")
 
 			return err
 		}

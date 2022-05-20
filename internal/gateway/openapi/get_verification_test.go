@@ -19,7 +19,7 @@ import (
 
 func TestServer_GetVerification(t *testing.T) {
 	type fields struct {
-		usecase *UsecaseMock
+		usecase Usecase
 	}
 	type args struct {
 		id openapiTypes.UUID

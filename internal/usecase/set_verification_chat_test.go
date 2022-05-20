@@ -10,7 +10,7 @@ import (
 	"github.com/sknv/passwordless-verifier/internal/model"
 )
 
-func TestGetVerificationParams_TypedID(t *testing.T) {
+func TestSetVerificationChatParams_TypedID(t *testing.T) {
 	type fields struct {
 		id string
 	}
@@ -43,7 +43,7 @@ func TestGetVerificationParams_TypedID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := GetVerificationParams{
+			p := SetVerificationChatParams{
 				ID: tt.fields.id,
 			}
 			assert.Equalf(t, tt.want, p.TypedID(), "TypedID()")
@@ -51,7 +51,7 @@ func TestGetVerificationParams_TypedID(t *testing.T) {
 	}
 }
 
-func TestGetVerificationParams_Validate(t *testing.T) {
+func TestSetVerificationChatParams_Validate(t *testing.T) {
 	type fields struct {
 		id string
 	}
@@ -78,7 +78,7 @@ func TestGetVerificationParams_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := GetVerificationParams{
+			p := SetVerificationChatParams{
 				ID: tt.fields.id,
 			}
 			err := p.Validate()
@@ -87,49 +87,55 @@ func TestGetVerificationParams_Validate(t *testing.T) {
 	}
 }
 
-func TestUsecase_GetVerification(t *testing.T) {
+func TestUsecase_SetVerificationChat(t *testing.T) {
 	type fields struct {
 		store Store
 	}
 	type args struct {
-		params *GetVerificationParams
+		params *SetVerificationChatParams
 	}
 
-	verificationID := uuid.New()
+	verificationID, chatID := uuid.New(), int64(1)
 
 	tests := []struct {
 		name          string
 		prepareFields func() *fields
 		args          args
-		want          *model.Verification
 		wantErr       bool
 	}{
 		{
 			name:          "when args are not valid it returns an error",
 			prepareFields: func() *fields { return &fields{} },
 			args: args{
-				params: &GetVerificationParams{},
+				params: &SetVerificationChatParams{},
 			},
 			wantErr: true,
 		},
 		{
-			name: "when args are valid it finds and returns a verification",
+			name: "when args are valid it finds a verification, sets chat id and updates a model returning the update error",
 			prepareFields: func() *fields {
 				return &fields{
 					store: &StoreMock{
-						FindVerificationByIDWithSessionFunc: func(_ context.Context, id uuid.UUID) (*model.Verification, error) {
+						FindVerificationByIDFunc: func(_ context.Context, id uuid.UUID) (*model.Verification, error) {
 							return &model.Verification{ID: id}, nil
+						},
+						UpdateVerificationFunc: func(ctx context.Context, verification *model.Verification) error {
+							in := &model.Verification{
+								ID:     verificationID,
+								ChatID: chatID,
+							}
+
+							assert.Equalf(t, in, verification, "store.UpdateVerification(%v)", verification)
+							return nil
 						},
 					},
 				}
 			},
 			args: args{
-				params: &GetVerificationParams{
-					ID: verificationID.String(),
+				params: &SetVerificationChatParams{
+					ID:     verificationID.String(),
+					ChatID: chatID,
 				},
-			},
-			want: &model.Verification{
-				ID: verificationID,
 			},
 		},
 	}
@@ -139,15 +145,14 @@ func TestUsecase_GetVerification(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Prepare fields
+			// Prepare fields and args
 			fields := tt.prepareFields()
 
 			u := &Usecase{
 				Store: fields.store,
 			}
-			got, err := u.GetVerification(context.Background(), tt.args.params)
-			assert.Equalf(t, tt.wantErr, err != nil, "GetVerification(ctx, %v)", tt.args.params)
-			assert.Equalf(t, tt.want, got, "GetVerification(ctx, %v)", tt.args.params)
+			err := u.SetVerificationChat(context.Background(), tt.args.params)
+			assert.Equalf(t, tt.wantErr, err != nil, "SetVerificationChat(ctx, %v)", tt.args.params)
 		})
 	}
 }

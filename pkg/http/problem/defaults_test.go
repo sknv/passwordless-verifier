@@ -30,14 +30,14 @@ func TestBadRequest(t *testing.T) {
 				expected.Data = invalidParams{
 					InvalidParams: invalidArgs,
 				}
-				return assert.Equal(t, expected, actual, msgAndArgs)
+				return assert.Equal(t, expected, actual, msgAndArgs...)
 			},
 		},
 		{
 			name: "when params are not provided it skips data field",
 			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
 				expected := BadRequest()
-				return assert.Equal(t, expected, actual, msgAndArgs)
+				return assert.Equal(t, expected, actual, msgAndArgs...)
 			},
 		},
 	}
