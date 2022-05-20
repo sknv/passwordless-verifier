@@ -2,9 +2,7 @@ package usecase
 
 import (
 	"context"
-	"database/sql"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +12,7 @@ import (
 
 func TestSetVerificationChatParams_TypedID(t *testing.T) {
 	type fields struct {
-		ID string
+		id string
 	}
 
 	id := uuid.New()
@@ -27,14 +25,14 @@ func TestSetVerificationChatParams_TypedID(t *testing.T) {
 		{
 			name: "when valid id is provided it returns a filled uuid",
 			fields: fields{
-				ID: id.String(),
+				id: id.String(),
 			},
 			want: id,
 		},
 		{
 			name: "when invalid id is provided it returns an empty uuid",
 			fields: fields{
-				ID: "invalid-uuid",
+				id: "invalid-uuid",
 			},
 			want: uuid.UUID{},
 		},
@@ -46,7 +44,7 @@ func TestSetVerificationChatParams_TypedID(t *testing.T) {
 			t.Parallel()
 
 			p := SetVerificationChatParams{
-				ID: tt.fields.ID,
+				ID: tt.fields.id,
 			}
 			assert.Equalf(t, tt.want, p.TypedID(), "TypedID()")
 		})
@@ -91,13 +89,13 @@ func TestSetVerificationChatParams_Validate(t *testing.T) {
 
 func TestUsecase_SetVerificationChat(t *testing.T) {
 	type fields struct {
-		db DB
+		store Store
 	}
 	type args struct {
 		params *SetVerificationChatParams
 	}
 
-	id, chatID := uuid.New(), int64(1)
+	verificationID, chatID := uuid.New(), int64(1)
 
 	tests := []struct {
 		name          string
@@ -117,29 +115,25 @@ func TestUsecase_SetVerificationChat(t *testing.T) {
 			name: "when args are valid it finds a verification, sets chat id and updates a model returning the update error",
 			prepareFields: func() *fields {
 				return &fields{
-					db: &DBMock{
-						FindFunc: func(_ context.Context, dest any, _ string, _ ...any) error {
-							verification, _ := dest.(*model.Verification)
-							verification.ID = id
-
-							return nil
+					store: &StoreMock{
+						FindVerificationByIDFunc: func(_ context.Context, id uuid.UUID) (*model.Verification, error) {
+							return &model.Verification{ID: id}, nil
 						},
-						UpdateFunc: func(ctx context.Context, anyVerification any, columns ...string) (sql.Result, error) {
-							in := &model.Verification{ID: id}
-							in.SetChatID(chatID)
+						UpdateVerificationFunc: func(ctx context.Context, verification *model.Verification) error {
+							in := &model.Verification{
+								ID:     verificationID,
+								ChatID: chatID,
+							}
 
-							verification, _ := anyVerification.(*model.Verification)
-							verification.DB, verification.UpdatedAt = nil, time.Time{} // ignore fields when compare
-
-							assert.Equalf(t, in, verification, "db.Update(%v)", anyVerification)
-							return nil, nil
+							assert.Equalf(t, in, verification, "store.UpdateVerification(%v)", verification)
+							return nil
 						},
 					},
 				}
 			},
 			args: args{
 				params: &SetVerificationChatParams{
-					ID:     id.String(),
+					ID:     verificationID.String(),
 					ChatID: chatID,
 				},
 			},
@@ -155,7 +149,7 @@ func TestUsecase_SetVerificationChat(t *testing.T) {
 			fields := tt.prepareFields()
 
 			u := &Usecase{
-				DB: fields.db,
+				Store: fields.store,
 			}
 			err := u.SetVerificationChat(context.Background(), tt.args.params)
 			assert.Equalf(t, tt.wantErr, err != nil, "SetVerificationChat(ctx, %v)", tt.args.params)

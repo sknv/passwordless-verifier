@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 
-	"github.com/sknv/passwordless-verifier/internal/model"
 	"github.com/sknv/passwordless-verifier/pkg/http/problem"
 	"github.com/sknv/passwordless-verifier/pkg/log"
 )
@@ -47,15 +46,14 @@ func (u *Usecase) SetVerificationChat(ctx context.Context, params *SetVerificati
 		return fmt.Errorf("validate params: %w", err)
 	}
 
-	verifications := &model.Verifications{DB: u.DB}
-	verification, err := verifications.FindByID(ctx, params.TypedID())
+	verification, err := u.Store.FindVerificationByID(ctx, params.TypedID())
 	if err != nil {
-		return fmt.Errorf("find verification by id: %w", err)
+		return fmt.Errorf("find verification by id: %w", ConvertStoreError(err))
 	}
 
-	verification.SetChatID(params.ChatID)
-	if err = verification.Update(ctx); err != nil {
-		return fmt.Errorf("update verification: %w", err)
+	verification.ChatID = params.ChatID
+	if err = u.Store.UpdateVerification(ctx, verification); err != nil {
+		return fmt.Errorf("update verification: %w", ConvertStoreError(err))
 	}
 
 	return nil

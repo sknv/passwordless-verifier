@@ -1,9 +1,6 @@
 package model
 
 import (
-	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"testing"
 
@@ -38,128 +35,78 @@ func TestVerificationMethod_Validate(t *testing.T) {
 	}
 }
 
-func TestVerification_Create(t *testing.T) {
-	type fields struct {
-		db DB
-		id uuid.UUID
-	}
+func TestFormatDeeplink(t *testing.T) {
 	type args struct {
-		deeplink string
+		deeplink       string
+		verificationID uuid.UUID
 	}
 
-	deeplink, id := "https://t.me/example_bot", uuid.New()
-	formattedDeeplink := fmt.Sprintf("%s?start=%s", deeplink, id)
-
-	tests := []struct {
-		name          string
-		prepareFields func() *fields
-		args          args
-		want          func(*fields) *Verification
-		wantErr       bool
-	}{
-		{
-			name: "it creates deeplink, set status and returns db call result",
-			prepareFields: func() *fields {
-				return &fields{
-					db: &DBMock{
-						CreateFunc: func(context.Context, any) (sql.Result, error) { return nil, errors.New("any-error") },
-					},
-					id: id,
-				}
-			},
-			args: args{
-				deeplink: deeplink,
-			},
-			want: func(f *fields) *Verification {
-				return &Verification{
-					DB: f.db,
-
-					ID:       id,
-					Status:   VerificationStatusInProgress,
-					Deeplink: formattedDeeplink,
-				}
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			// Prepare fields
-			fields := tt.prepareFields()
-
-			v := &Verification{
-				DB: fields.db,
-
-				ID: id,
-			}
-			err := v.Create(context.Background(), tt.args.deeplink)
-			assert.Equalf(t, tt.wantErr, err != nil, "Create(ctx, %s)", tt.args.deeplink)
-			if tt.want != nil {
-				assert.Equalf(t, tt.want(fields), v, "Create(ctx, %v)", tt.args.deeplink)
-			}
-		})
-	}
-}
-
-func TestVerification_Update(t *testing.T) {
-	type fields struct {
-		db DB
-	}
-
-	tests := []struct {
-		name          string
-		prepareFields func() *fields
-		wantErr       bool
-	}{
-		{
-			name: "it returns db call result",
-			prepareFields: func() *fields {
-				return &fields{
-					db: &DBMock{
-						UpdateFunc: func(context.Context, any, ...string) (sql.Result, error) { return nil, errors.New("any-error") },
-					},
-				}
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			// Prepare fields
-			fields := tt.prepareFields()
-
-			v := &Verification{
-				DB: fields.db,
-			}
-			err := v.Update(context.Background())
-			assert.Equalf(t, tt.wantErr, err != nil, "Update(ctx)")
-		})
-	}
-}
-
-func TestVerification_SetChatID(t *testing.T) {
-	type args struct {
-		chatID int64
-	}
-
-	chatID := int64(1)
+	deeplink, verificationID := "https://t.me/example_bot", uuid.New()
 
 	tests := []struct {
 		name string
 		args args
+		want string
 	}{
 		{
-			name: "it sets chat id sql.NullInt64 value",
+			name: "it returns an expected format",
 			args: args{
-				chatID: chatID,
+				deeplink:       deeplink,
+				verificationID: verificationID,
+			},
+			want: fmt.Sprintf("%s?start=%s", deeplink, verificationID),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := FormatDeeplink(tt.args.deeplink, tt.args.verificationID)
+			assert.Equalf(t, tt.want, got, "FormatDeeplink(%v, %v)", tt.args.deeplink, tt.args.verificationID)
+		})
+	}
+}
+
+func TestVerification_LogIn(t *testing.T) {
+	type fields struct {
+		id uuid.UUID
+	}
+	type args struct {
+		phoneNumber string
+	}
+
+	verificationID, phone := uuid.New(), "+79001002030"
+
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   assert.ValueAssertionFunc
+	}{
+		{
+			name: "it sets all the fields successfully",
+			fields: fields{
+				id: verificationID,
+			},
+			args: args{
+				phoneNumber: phone,
+			},
+			want: func(t assert.TestingT, actual interface{}, msgAndArgs ...interface{}) bool {
+				want := &Verification{
+					ID:     verificationID,
+					Status: VerificationStatusCompleted,
+					Session: &Session{
+						VerificationID: verificationID,
+						PhoneNumber:    phone,
+					},
+				}
+
+				got, _ := actual.(*Verification)
+				got.Session.ID = uuid.UUID{} // ignore fields when compare
+
+				return assert.Equal(t, want, got, msgAndArgs...)
 			},
 		},
 	}
@@ -169,10 +116,11 @@ func TestVerification_SetChatID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			v := &Verification{}
-			v.SetChatID(tt.args.chatID)
-			assert.Equalf(t, chatID, v.ChatID.Int64, "SetChatID(%v)", tt.args.chatID)
-			assert.Truef(t, v.ChatID.Valid, "SetChatID(%v)", tt.args.chatID)
+			v := &Verification{
+				ID: tt.fields.id,
+			}
+			v.LogIn(tt.args.phoneNumber)
+			tt.want(t, v, "LogIn(%v)", tt.args.phoneNumber)
 		})
 	}
 }

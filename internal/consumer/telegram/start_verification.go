@@ -31,22 +31,22 @@ func (b *Bot) startVerification(ctx context.Context, message *tgbotapi.Message) 
 			replyErr = fmt.Errorf("reply start not found: %w", replyErr)
 			err = multierror.Append(err, replyErr)
 		}
+
 		return err
 	}
 
 	// Ask a user to share their contact
-	if err = b.shareContact(message); err != nil {
-		return fmt.Errorf("share contact: %w", err)
+	if err = b.replyShareContact(message); err != nil {
+		return fmt.Errorf("reply share contact: %w", err)
 	}
 	return nil
 }
 
-func (b *Bot) shareContact(to *tgbotapi.Message) error {
-	keyboard := tgbotapi.NewOneTimeReplyKeyboard([]tgbotapi.KeyboardButton{
+func (b *Bot) replyShareContact(to *tgbotapi.Message) error {
+	msg := tgbotapi.NewMessage(to.Chat.ID, msgShareContact)
+	msg.ReplyMarkup = tgbotapi.NewOneTimeReplyKeyboard([]tgbotapi.KeyboardButton{
 		tgbotapi.NewKeyboardButtonContact(btnShareContactText),
 	})
-	msg := tgbotapi.NewMessage(to.Chat.ID, msgShareContact)
-	msg.ReplyMarkup = keyboard
 
 	_, err := b.bot.Send(msg)
 	return err

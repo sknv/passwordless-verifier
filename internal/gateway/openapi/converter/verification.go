@@ -26,5 +26,6 @@ func ToVerification(verification *model.Verification) *openapi.Verification {
 		Deeplink:  verification.Deeplink,
 		Status:    verificationStatuses[verification.Status],
 		CreatedAt: verification.CreatedAt,
+		Session:   ToSession(verification.Session),
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 
+	"github.com/sknv/passwordless-verifier/internal/model"
 	"github.com/sknv/passwordless-verifier/internal/usecase"
 	"github.com/sknv/passwordless-verifier/pkg/closer"
 	"github.com/sknv/passwordless-verifier/pkg/log"
@@ -26,6 +27,7 @@ type BotConfig struct {
 
 type Usecase interface {
 	SetVerificationChat(ctx context.Context, params *usecase.SetVerificationChatParams) error
+	VerifyContact(ctx context.Context, params *usecase.VerifyContactParams) (*model.Verification, error)
 }
 
 type Bot struct {

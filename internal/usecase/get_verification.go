@@ -46,10 +46,9 @@ func (u *Usecase) GetVerification(ctx context.Context, params *GetVerificationPa
 		return nil, fmt.Errorf("validate params: %w", err)
 	}
 
-	verifications := &model.Verifications{DB: u.DB}
-	verification, err := verifications.FindByID(ctx, params.TypedID())
+	verification, err := u.Store.FindVerificationByIDWithSession(ctx, params.TypedID())
 	if err != nil {
-		return nil, fmt.Errorf("find verification by id: %w", err)
+		return nil, fmt.Errorf("find verification by id with session: %w", ConvertStoreError(err))
 	}
 
 	return verification, nil

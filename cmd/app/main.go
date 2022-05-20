@@ -9,8 +9,8 @@ import (
 	"github.com/uptrace/bun"
 
 	"github.com/sknv/passwordless-verifier/internal/consumer/telegram"
-	repo "github.com/sknv/passwordless-verifier/internal/db"
 	"github.com/sknv/passwordless-verifier/internal/gateway/openapi"
+	"github.com/sknv/passwordless-verifier/internal/store"
 	"github.com/sknv/passwordless-verifier/internal/usecase"
 	"github.com/sknv/passwordless-verifier/pkg/application"
 	"github.com/sknv/passwordless-verifier/pkg/http/server"
@@ -96,7 +96,7 @@ func makeDB(app *application.Application, config *Config) (*bun.DB, error) {
 func makeUsecase(config *Config, db *bun.DB) *usecase.Usecase {
 	return &usecase.Usecase{
 		Config: usecase.Config{Deeplink: config.Telegram.Deeplink},
-		DB:     &repo.DB{DB: db},
+		Store:  &store.DB{DB: db},
 	}
 }
 

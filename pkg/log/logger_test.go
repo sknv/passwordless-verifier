@@ -113,7 +113,7 @@ func TestGetFormatter(t *testing.T) {
 			},
 			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
 				_, ok := actual.(*logrus.TextFormatter)
-				return assert.True(t, ok, msgAndArgs)
+				return assert.True(t, ok, msgAndArgs...)
 			},
 		},
 		{
@@ -121,7 +121,7 @@ func TestGetFormatter(t *testing.T) {
 			args: args{},
 			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
 				_, ok := actual.(*logrus.JSONFormatter)
-				return assert.True(t, ok, msgAndArgs)
+				return assert.True(t, ok, msgAndArgs...)
 			},
 		},
 	}

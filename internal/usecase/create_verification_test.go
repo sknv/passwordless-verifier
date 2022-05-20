@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
-	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -45,61 +45,9 @@ func TestNewVerification_Validate(t *testing.T) {
 	}
 }
 
-func TestNewVerification_ToVerification(t *testing.T) {
-	type fields struct {
-		method model.VerificationMethod
-	}
-	type args struct {
-		db model.DB
-	}
-
-	db := &DBMock{}
-
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   assert.ValueAssertionFunc
-	}{
-		{
-			name: "it constructs a new verification",
-			fields: fields{
-				method: model.VerificationMethodTelegram,
-			},
-			args: args{
-				db: db,
-			},
-			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
-				want := &model.Verification{
-					DB: db,
-
-					Method: model.VerificationMethodTelegram,
-				}
-
-				got, _ := actual.(*model.Verification)
-				got.ID = uuid.UUID{} // ignore fields when compare
-
-				return assert.Equal(t, want, got, msgAndArgs)
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			v := NewVerification{
-				Method: tt.fields.method,
-			}
-			tt.want(t, v.ToVerification(tt.args.db), "ToVerification(%v)", tt.args.db)
-		})
-	}
-}
-
 func TestUsecase_CreateVerification(t *testing.T) {
 	type fields struct {
-		db model.DB
+		store Store
 	}
 	type args struct {
 		newVerification *NewVerification
@@ -109,7 +57,7 @@ func TestUsecase_CreateVerification(t *testing.T) {
 		name          string
 		prepareFields func() *fields
 		args          args
-		want          func(*fields) assert.ValueAssertionFunc
+		want          assert.ValueAssertionFunc
 		wantErr       bool
 	}{
 		{
@@ -124,8 +72,8 @@ func TestUsecase_CreateVerification(t *testing.T) {
 			name: "when args are valid it creates and returns a verification",
 			prepareFields: func() *fields {
 				return &fields{
-					db: &DBMock{
-						CreateFunc: func(context.Context, any) (sql.Result, error) { return nil, nil },
+					store: &StoreMock{
+						CreateVerificationFunc: func(context.Context, *model.Verification) error { return nil },
 					},
 				}
 			},
@@ -134,20 +82,16 @@ func TestUsecase_CreateVerification(t *testing.T) {
 					Method: model.VerificationMethodTelegram,
 				},
 			},
-			want: func(f *fields) assert.ValueAssertionFunc {
-				return func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
-					want := &model.Verification{
-						DB: f.db,
-
-						Method: model.VerificationMethodTelegram,
-						Status: model.VerificationStatusInProgress,
-					}
-
-					got, _ := actual.(*model.Verification)
-					got.ID, got.Deeplink = uuid.UUID{}, "" // ignore fields when compare
-
-					return assert.Equal(t, want, got, msgAndArgs)
+			want: func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
+				want := &model.Verification{
+					Method: model.VerificationMethodTelegram,
+					Status: model.VerificationStatusInProgress,
 				}
+
+				got, _ := actual.(*model.Verification)
+				got.ID, got.Deeplink, got.CreatedAt = uuid.UUID{}, "", time.Time{} // ignore fields when compare
+
+				return assert.Equal(t, want, got, msgAndArgs...)
 			},
 		},
 	}
@@ -161,12 +105,12 @@ func TestUsecase_CreateVerification(t *testing.T) {
 			fields := tt.prepareFields()
 
 			u := &Usecase{
-				DB: fields.db,
+				Store: fields.store,
 			}
 			got, err := u.CreateVerification(context.Background(), tt.args.newVerification)
 			assert.Equalf(t, tt.wantErr, err != nil, "CreateVerification(ctx, %v)", tt.args.newVerification)
 			if tt.want != nil {
-				tt.want(fields)(t, got, "CreateVerification(ctx, %v)", tt.args.newVerification)
+				tt.want(t, got, "CreateVerification(ctx, %v)", tt.args.newVerification)
 			}
 		})
 	}

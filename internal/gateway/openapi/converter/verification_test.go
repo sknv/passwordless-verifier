@@ -52,7 +52,7 @@ func TestToVerification(t *testing.T) {
 		verification *model.Verification
 	}
 
-	verificationUUID, now := uuid.New(), time.Now()
+	verificationID, now, phone := uuid.New(), time.Now(), "+79001002030"
 
 	tests := []struct {
 		name string
@@ -60,22 +60,30 @@ func TestToVerification(t *testing.T) {
 		want *openapi.Verification
 	}{
 		{
-			name: "it converts a usecase response to an http response",
+			name: "it converts a model to an http response",
 			args: args{
 				verification: &model.Verification{
-					ID:        verificationUUID,
+					ID:        verificationID,
 					Method:    model.VerificationMethodTelegram,
 					Deeplink:  "https://t.me/example_bot?start=123",
 					Status:    model.VerificationStatusInProgress,
 					CreatedAt: now,
+					Session: &model.Session{
+						PhoneNumber: phone,
+						CreatedAt:   now,
+					},
 				},
 			},
 			want: &openapi.Verification{
-				Id:        openapiTypes.UUID(verificationUUID.String()),
+				Id:        openapiTypes.UUID(verificationID.String()),
 				Method:    openapi.VerificationMethodTelegram,
 				Deeplink:  "https://t.me/example_bot?start=123",
 				Status:    openapi.VerificationStatusInProgress,
 				CreatedAt: now,
+				Session: &openapi.Session{
+					PhoneNumber: phone,
+					CreatedAt:   now,
+				},
 			},
 		},
 	}
@@ -85,8 +93,7 @@ func TestToVerification(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := ToVerification(tt.args.verification)
-			assert.Equalf(t, tt.want, got, "ToVerification(%v)", tt.args.verification)
+			assert.Equalf(t, tt.want, ToVerification(tt.args.verification), "ToVerification(%v)", tt.args.verification)
 		})
 	}
 }

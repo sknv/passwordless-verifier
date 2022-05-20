@@ -12,7 +12,7 @@ import (
 
 func TestGetVerificationParams_TypedID(t *testing.T) {
 	type fields struct {
-		ID string
+		id string
 	}
 
 	id := uuid.New()
@@ -25,14 +25,14 @@ func TestGetVerificationParams_TypedID(t *testing.T) {
 		{
 			name: "when valid id is provided it returns a filled uuid",
 			fields: fields{
-				ID: id.String(),
+				id: id.String(),
 			},
 			want: id,
 		},
 		{
 			name: "when invalid id is provided it returns an empty uuid",
 			fields: fields{
-				ID: "invalid-uuid",
+				id: "invalid-uuid",
 			},
 			want: uuid.UUID{},
 		},
@@ -44,7 +44,7 @@ func TestGetVerificationParams_TypedID(t *testing.T) {
 			t.Parallel()
 
 			p := GetVerificationParams{
-				ID: tt.fields.ID,
+				ID: tt.fields.id,
 			}
 			assert.Equalf(t, tt.want, p.TypedID(), "TypedID()")
 		})
@@ -89,19 +89,19 @@ func TestGetVerificationParams_Validate(t *testing.T) {
 
 func TestUsecase_GetVerification(t *testing.T) {
 	type fields struct {
-		db model.DB
+		store Store
 	}
 	type args struct {
 		params *GetVerificationParams
 	}
 
-	id := uuid.New()
+	verificationID := uuid.New()
 
 	tests := []struct {
 		name          string
 		prepareFields func() *fields
 		args          args
-		want          func(*fields) assert.ValueAssertionFunc
+		want          *model.Verification
 		wantErr       bool
 	}{
 		{
@@ -116,30 +116,20 @@ func TestUsecase_GetVerification(t *testing.T) {
 			name: "when args are valid it finds and returns a verification",
 			prepareFields: func() *fields {
 				return &fields{
-					db: &DBMock{
-						FindFunc: func(_ context.Context, dest any, _ string, _ ...any) error {
-							verification, _ := dest.(*model.Verification)
-							verification.ID = id
-							return nil
+					store: &StoreMock{
+						FindVerificationByIDWithSessionFunc: func(_ context.Context, id uuid.UUID) (*model.Verification, error) {
+							return &model.Verification{ID: id}, nil
 						},
 					},
 				}
 			},
 			args: args{
 				params: &GetVerificationParams{
-					ID: id.String(),
+					ID: verificationID.String(),
 				},
 			},
-			want: func(f *fields) assert.ValueAssertionFunc {
-				return func(t assert.TestingT, actual any, msgAndArgs ...any) bool {
-					want := &model.Verification{
-						DB: f.db,
-
-						ID: id,
-					}
-
-					return assert.Equal(t, want, actual, msgAndArgs)
-				}
+			want: &model.Verification{
+				ID: verificationID,
 			},
 		},
 	}
@@ -153,13 +143,11 @@ func TestUsecase_GetVerification(t *testing.T) {
 			fields := tt.prepareFields()
 
 			u := &Usecase{
-				DB: fields.db,
+				Store: fields.store,
 			}
 			got, err := u.GetVerification(context.Background(), tt.args.params)
 			assert.Equalf(t, tt.wantErr, err != nil, "GetVerification(ctx, %v)", tt.args.params)
-			if tt.want != nil {
-				tt.want(fields)(t, got, "GetVerification(ctx, %v)", tt.args.params)
-			}
+			assert.Equalf(t, tt.want, got, "GetVerification(ctx, %v)", tt.args.params)
 		})
 	}
 }

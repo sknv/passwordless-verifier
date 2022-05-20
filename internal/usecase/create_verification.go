@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 
 	"github.com/sknv/passwordless-verifier/internal/model"
@@ -28,13 +29,6 @@ func (v NewVerification) Validate() error {
 	return nil
 }
 
-func (v NewVerification) ToVerification(db model.DB) *model.Verification {
-	verification := model.NewVerification(db)
-	verification.Method = v.Method
-
-	return verification
-}
-
 func (u *Usecase) CreateVerification(
 	ctx context.Context, newVerification *NewVerification,
 ) (*model.Verification, error) {
@@ -49,9 +43,15 @@ func (u *Usecase) CreateVerification(
 		return nil, fmt.Errorf("validate params: %w", err)
 	}
 
-	verification := newVerification.ToVerification(u.DB)
-	if err := verification.Create(ctx, u.Config.Deeplink); err != nil {
-		return nil, fmt.Errorf("create verification: %w", err)
+	verificationID := uuid.New()
+	verification := &model.Verification{
+		ID:       verificationID,
+		Method:   newVerification.Method,
+		Deeplink: model.FormatDeeplink(u.Config.Deeplink, verificationID),
+		Status:   model.VerificationStatusInProgress,
+	}
+	if err := u.Store.CreateVerification(ctx, verification); err != nil {
+		return nil, fmt.Errorf("create verification: %w", ConvertStoreError(err))
 	}
 
 	return verification, nil
