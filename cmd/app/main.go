@@ -20,7 +20,7 @@ import (
 	"github.com/sknv/passwordless-verifier/pkg/tracing"
 )
 
-const applicationStopTimeout = time.Second * 30
+const _applicationStopTimeout = time.Second * 30
 
 func main() {
 	configPath := ConfigFilePathFlag()
@@ -64,7 +64,7 @@ func main() {
 	<-os.NotifyAboutExit() // wait for the program exit
 
 	// Close the app applying deferred closers
-	if err = stopApp(app, applicationStopTimeout); err != nil {
+	if err = stopApp(app, _applicationStopTimeout); err != nil {
 		logger.WithError(err).Error("stop application")
 	}
 }
