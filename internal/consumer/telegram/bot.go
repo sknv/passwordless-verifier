@@ -92,12 +92,12 @@ func (b *Bot) HandleUpdate(ctx context.Context, update tgbotapi.Update) {
 	var err error
 	switch { // route commands
 	case strings.Contains(update.Message.Text, "/start"): // verification started
-		err = b.startVerification(ctx, update.Message)
+		err = b.StartVerification(ctx, update.Message)
 		if err != nil {
 			err = fmt.Errorf("start verification: %w", err)
 		}
 	case update.Message.Contact != nil: // contact shared
-		err = b.verifyContact(ctx, update.Message)
+		err = b.VerifyContact(ctx, update.Message)
 		if err != nil {
 			err = fmt.Errorf("verify contact: %w", err)
 		}

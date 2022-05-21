@@ -7,11 +7,15 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
+	"go.opentelemetry.io/otel"
 
 	"github.com/sknv/passwordless-verifier/internal/model"
 )
 
 func (d *DB) FindVerificationByID(ctx context.Context, id uuid.UUID) (*model.Verification, error) {
+	ctx, span := otel.Tracer("").Start(ctx, "store.FindVerificationByID")
+	defer span.End()
+
 	verification := &model.Verification{}
 	err := d.DB.NewSelect().
 		Model(verification).
@@ -25,6 +29,9 @@ func (d *DB) FindVerificationByID(ctx context.Context, id uuid.UUID) (*model.Ver
 }
 
 func (d *DB) FindVerificationByIDWithSession(ctx context.Context, id uuid.UUID) (*model.Verification, error) {
+	ctx, span := otel.Tracer("").Start(ctx, "store.FindVerificationByIDWithSession")
+	defer span.End()
+
 	verification, err := d.FindVerificationByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("select verification: %w", err)
@@ -40,6 +47,9 @@ func (d *DB) FindVerificationByIDWithSession(ctx context.Context, id uuid.UUID) 
 }
 
 func (d *DB) FindLatestVerificationByChatID(ctx context.Context, chatID int64) (*model.Verification, error) {
+	ctx, span := otel.Tracer("").Start(ctx, "store.FindLatestVerificationByChatID")
+	defer span.End()
+
 	verification := &model.Verification{}
 	err := d.DB.NewSelect().
 		Model(verification).
@@ -55,6 +65,9 @@ func (d *DB) FindLatestVerificationByChatID(ctx context.Context, chatID int64) (
 }
 
 func (d *DB) CreateVerification(ctx context.Context, verification *model.Verification) error {
+	ctx, span := otel.Tracer("").Start(ctx, "store.CreateVerification")
+	defer span.End()
+
 	verification.CreatedAt = time.Now()
 
 	_, err := d.DB.NewInsert().
@@ -64,10 +77,16 @@ func (d *DB) CreateVerification(ctx context.Context, verification *model.Verific
 }
 
 func (d *DB) UpdateVerification(ctx context.Context, verification *model.Verification) error {
+	ctx, span := otel.Tracer("").Start(ctx, "store.UpdateVerification")
+	defer span.End()
+
 	return updateVerification(ctx, d.DB, verification)
 }
 
 func (d *DB) UpdateVerificationAndCreateSession(ctx context.Context, verification *model.Verification) error {
+	ctx, span := otel.Tracer("").Start(ctx, "store.UpdateVerificationAndCreateSession")
+	defer span.End()
+
 	// Apply changes in transaction
 	return d.DB.RunInTx(ctx, nil, func(txCtx context.Context, tx bun.Tx) error {
 		if err := updateVerification(txCtx, tx, verification); err != nil {

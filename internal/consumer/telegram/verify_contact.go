@@ -8,12 +8,16 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-multierror"
+	"go.opentelemetry.io/otel"
 
 	"github.com/sknv/passwordless-verifier/internal/model"
 	"github.com/sknv/passwordless-verifier/internal/usecase"
 )
 
-func (b *Bot) verifyContact(ctx context.Context, message *tgbotapi.Message) error {
+func (b *Bot) VerifyContact(ctx context.Context, message *tgbotapi.Message) error {
+	ctx, span := otel.Tracer("").Start(ctx, "telegram.VerifyContact")
+	defer span.End()
+
 	verification, err := b.Usecase.VerifyContact(ctx, &usecase.VerifyContactParams{
 		ChatID:      message.Chat.ID,
 		ContactID:   message.Contact.UserID,

@@ -7,11 +7,15 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hashicorp/go-multierror"
+	"go.opentelemetry.io/otel"
 
 	"github.com/sknv/passwordless-verifier/internal/usecase"
 )
 
-func (b *Bot) startVerification(ctx context.Context, message *tgbotapi.Message) error {
+func (b *Bot) StartVerification(ctx context.Context, message *tgbotapi.Message) error {
+	ctx, span := otel.Tracer("").Start(ctx, "telegram.StartVerification")
+	defer span.End()
+
 	_, startUUID, found := strings.Cut(message.Text, "/start ")
 	if !found {
 		if err := b.reply(message, msgStartInitiatedDirectly); err != nil {
