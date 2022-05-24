@@ -4,7 +4,7 @@ info:
   title: Passwordless Verifier
   description: A service to verify user credentials during the passwordless authentication
 servers:
-  - url: http://localhost/api
+  - url: http://localhost:8080/api
 paths:
   /verifications:
     post:
