@@ -30,15 +30,6 @@ type NewVerification struct {
 	Method VerificationMethod `json:"method"`
 }
 
-// Problem defines model for Problem.
-type Problem struct {
-	Data   *map[string]interface{} `json:"data,omitempty"`
-	Detail *string                 `json:"detail,omitempty"`
-	Status int                     `json:"status"`
-	Title  string                  `json:"title"`
-	Type   string                  `json:"type"`
-}
-
 // Session defines model for Session.
 type Session struct {
 	CreatedAt   time.Time `json:"createdAt"`

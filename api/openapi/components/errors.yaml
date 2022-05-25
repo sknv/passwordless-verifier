@@ -1,0 +1,73 @@
+components:
+  schemas:
+    Problem:
+      description: Unexpected error
+      type: object
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        data:
+          type: object
+
+  responses:
+    400:
+      description: Bad request parameters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          examples:
+            json:
+              $ref: "#/components/examples/BadRequest"
+    404:
+      description: Resource is not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          examples:
+            json:
+              $ref: "#/components/examples/NotFound"
+    500:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          examples:
+            json:
+              $ref: "#/components/examples/InternalServerError"
+
+  examples:
+    BadRequest:
+      summary: Bad request parameters
+      value:
+        type: bad-request
+        title: Bad Request
+        status: 400
+        data:
+          invalidParams:
+            - name: method
+              message: "unknown verification method: whatsapp"
+    NotFound:
+      summary: Resource is not found
+      value:
+        type: not-found
+        title: Not found
+        status: 404
+    InternalServerError:
+      summary: Internal server error
+      value:
+        type: internal-server-error
+        title: Internal server error
+        status: 500

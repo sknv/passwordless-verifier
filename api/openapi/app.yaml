@@ -1,10 +1,12 @@
-openapi: "3.0.3"
+openapi: 3.0.3
 info:
   version: 1.0.0
   title: Passwordless Verifier
   description: A service to verify user credentials during the passwordless authentication
+
 servers:
   - url: http://localhost:8080/api
+
 paths:
   /verifications:
     post:
@@ -26,12 +28,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Verification'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
+        '400':
+          $ref: "./components/errors.yaml#/components/responses/400"
+        '500':
+          $ref: "./components/errors.yaml#/components/responses/500"
   /verifications/{id}:
     get:
       tags:
@@ -53,12 +53,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Verification'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
+        '400':
+          $ref: "./components/errors.yaml#/components/responses/400"
+        '404':
+          $ref: "./components/errors.yaml#/components/responses/404"
+        '500':
+          $ref: "./components/errors.yaml#/components/responses/500"
+
 components:
   schemas:
     NewVerification:
@@ -111,20 +112,3 @@ components:
         createdAt:
           type: string
           format: date-time
-    Problem:
-      type: object
-      required:
-        - type
-        - title
-        - status
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        status:
-          type: integer
-        detail:
-          type: string
-        data:
-          type: object
