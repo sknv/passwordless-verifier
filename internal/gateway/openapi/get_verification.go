@@ -15,7 +15,7 @@ import (
 func (s *Server) GetVerification(c echo.Context, id openapiTypes.UUID) error {
 	ctx := c.Request().Context()
 
-	verification, err := s.Usecase.GetVerification(ctx, &usecase.GetVerificationParams{ID: string(id)})
+	verification, err := s.Usecase.GetVerification(ctx, &usecase.GetVerificationParams{ID: id.String()})
 	if err != nil {
 		return err
 	}

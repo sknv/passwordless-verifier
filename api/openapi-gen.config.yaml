@@ -1,0 +1,5 @@
+output: ./openapi/app.gen.go
+package: openapi
+generate:
+  echo-server: true
+  models: true

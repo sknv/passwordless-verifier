@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	openapiTypes "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
@@ -27,7 +26,7 @@ func TestFromNewVerification(t *testing.T) {
 			name: "it converts an http request to a usecase request",
 			args: args{
 				newVerification: &openapi.NewVerification{
-					Method: openapi.VerificationMethodTelegram,
+					Method: openapi.Telegram,
 				},
 			},
 			want: &usecase.NewVerification{
@@ -75,10 +74,10 @@ func TestToVerification(t *testing.T) {
 				},
 			},
 			want: &openapi.Verification{
-				Id:        openapiTypes.UUID(verificationID.String()),
-				Method:    openapi.VerificationMethodTelegram,
+				Id:        verificationID,
+				Method:    openapi.Telegram,
 				Deeplink:  "https://t.me/example_bot?start=123",
-				Status:    openapi.VerificationStatusInProgress,
+				Status:    openapi.InProgress,
 				CreatedAt: now,
 				Session: &openapi.Session{
 					PhoneNumber: phone,

@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	openapiTypes "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -59,9 +58,9 @@ func TestServer_CreateVerification(t *testing.T) {
 				req: `{"method": "telegram"}`,
 			},
 			want: &openapi.Verification{
-				Id:     openapiTypes.UUID(verificationUUID.String()),
-				Method: openapi.VerificationMethodTelegram,
-				Status: openapi.VerificationStatusInProgress,
+				Id:     verificationUUID,
+				Method: openapi.Telegram,
+				Status: openapi.InProgress,
 			},
 		},
 	}
