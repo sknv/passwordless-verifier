@@ -1,16 +1,14 @@
 package converter
 
 import (
-	openapiTypes "github.com/deepmap/oapi-codegen/pkg/types"
-
 	"github.com/sknv/passwordless-verifier/api/openapi"
 	"github.com/sknv/passwordless-verifier/internal/model"
 	"github.com/sknv/passwordless-verifier/internal/usecase"
 )
 
 var verificationStatuses = map[model.VerificationStatus]openapi.VerificationStatus{
-	model.VerificationStatusInProgress: openapi.VerificationStatusInProgress,
-	model.VerificationStatusCompleted:  openapi.VerificationStatusCompleted,
+	model.VerificationStatusInProgress: openapi.InProgress,
+	model.VerificationStatusCompleted:  openapi.Completed,
 }
 
 func FromNewVerification(newVerification *openapi.NewVerification) *usecase.NewVerification {
@@ -21,7 +19,7 @@ func FromNewVerification(newVerification *openapi.NewVerification) *usecase.NewV
 
 func ToVerification(verification *model.Verification) *openapi.Verification {
 	return &openapi.Verification{
-		Id:        openapiTypes.UUID(verification.ID.String()),
+		Id:        verification.ID,
 		Method:    openapi.VerificationMethod(verification.Method),
 		Deeplink:  verification.Deeplink,
 		Status:    verificationStatuses[verification.Status],

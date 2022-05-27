@@ -55,12 +55,12 @@ func TestServer_GetVerification(t *testing.T) {
 				}
 			},
 			args: args{
-				id: openapiTypes.UUID(verificationUUID.String()),
+				id: verificationUUID,
 			},
 			want: &openapi.Verification{
-				Id:     openapiTypes.UUID(verificationUUID.String()),
-				Method: openapi.VerificationMethodTelegram,
-				Status: openapi.VerificationStatusInProgress,
+				Id:     verificationUUID,
+				Method: openapi.Telegram,
+				Status: openapi.InProgress,
 			},
 		},
 	}
@@ -78,7 +78,7 @@ func TestServer_GetVerification(t *testing.T) {
 			c := echo.New().NewContext(req, rec)
 			c.SetPath("/api/verifications/:id")
 			c.SetParamNames("id")
-			c.SetParamValues(string(tt.args.id))
+			c.SetParamValues(tt.args.id.String())
 
 			// Prepare fields
 			fields := tt.prepareFields()
