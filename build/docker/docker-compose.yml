@@ -7,7 +7,7 @@ services:
     ports:
       - "6831:6831/udp" # collector
       - "16686:16686"   # ui
-    restart: always
+    restart: unless-stopped
 
   cockroach:
     container_name: ${PROJECT_ENV}_cockroach
@@ -18,7 +18,7 @@ services:
     command: start-single-node --insecure
     volumes:
       - cockroach_data:/cockroach/cockroach-data # keep db data
-    restart: always
+    restart: unless-stopped
 
 volumes:
   cockroach_data:

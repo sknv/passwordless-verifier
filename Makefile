@@ -1,7 +1,7 @@
 export PROJECT_ENV=dev
 PROJECT_NAME=passwordless_verifier
 DOCKER_COMPOSE_FILE=./build/docker/docker-compose.yml
-DOCKER_COMPOSE_CMD=docker-compose -f ${DOCKER_COMPOSE_FILE} -p ${PROJECT_NAME}
+DOCKER_COMPOSE_CMD=docker compose -f ${DOCKER_COMPOSE_FILE} -p ${PROJECT_NAME}
 
 POSTGRES_URL?=postgres://root:root@localhost:26257/postgres?sslmode=disable
 
@@ -82,6 +82,30 @@ docker-start: jaeger-start cockroach-start
 .PHONY: docker-stop
 docker-stop: cockroach-stop jaeger-stop
 
+.PHONY: docker-down
+docker-down:
+	${DOCKER_COMPOSE_CMD} down
+
 .PHONY: docker-prune
 docker-prune:
 	docker system prune --volumes
+
+##
+# Vagrant section
+##
+
+.PHONY: vagrant-start
+vagrant-start:
+	cd ./build/vagrant && vagrant up
+
+.PHONY: vagrant-ssh
+vagrant-ssh:
+	cd ./build/vagrant && vagrant ssh
+
+.PHONY: vagrant-stop
+vagrant-stop:
+	cd ./build/vagrant && vagrant halt
+
+.PHONY: vagrant-destroy
+vagrant-destroy:
+	cd ./build/vagrant && vagrant destroy
