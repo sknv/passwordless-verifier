@@ -17,6 +17,9 @@ vendor/
 # macOS files
 .DS_Store
 
+# Vagrant files
+.vagrant/
+
 # IDE
 .idea/
 .vscode/
