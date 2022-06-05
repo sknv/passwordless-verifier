@@ -1,0 +1,117 @@
+version: '3'
+
+vars:
+  PROJECT_NAME: passwordless_verifier
+  DOCKER_COMPOSE_FILE: ./build/docker/docker-compose.yml
+  DOCKER_COMPOSE_CMD: docker compose -f {{.DOCKER_COMPOSE_FILE}} -p {{.PROJECT_NAME}}
+
+env:
+  PROJECT_ENV: dev
+
+tasks:
+  ##
+  # Common section
+  ##
+
+  add-pre-commit:
+    cmds:
+      - lefthook add pre-commit
+
+  db-migrate:
+    cmds:
+      - goose -dir ./db/migrations postgres {{.POSTGRES_URL}} up
+    vars:
+      POSTGRES_URL: postgres://root:root@localhost:26257/postgres?sslmode=disable
+
+  ##
+  # Go section
+  ##
+
+  deps:
+    cmds:
+      - go mod tidy && go mod vendor && go mod verify
+
+  gen:
+    cmds:
+      - go generate ./...
+
+  lint:
+    cmds:
+      - golangci-lint run
+
+  run:
+    cmds:
+      - go run ./cmd/app
+
+  test:
+    cmds:
+      - go test -cover ./...
+
+  tools:
+    cmds:
+      - cd ./tools && ./install.sh
+
+  ##
+  # Docker section
+  ##
+
+  container-start:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} up -d {{.CONTAINER}}"
+
+  container-stop:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} stop {{.CONTAINER}} && {{.DOCKER_COMPOSE_CMD}} rm --force {{.CONTAINER}}"
+
+  jaeger-start:
+    cmds:
+      - task: container-start
+    vars:
+      CONTAINER: jaeger
+
+  jaeger-stop:
+    cmds:
+      - task: container-stop
+    vars:
+      CONTAINER: jaeger
+
+  cockroach-start:
+    cmds:
+      - task: container-start
+    vars:
+      CONTAINER: cockroach
+
+  cockroach-stop:
+    cmds:
+      - task: container-stop
+    vars:
+      CONTAINER: cockroach
+
+  docker-start:
+    cmds:
+      - task: jaeger-start
+      - task: cockroach-start
+
+  docker-stop:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} down"
+
+  ##
+  # Vagrant section
+  ##
+
+  vagrant-start:
+    cmds:
+      - cd ./build/vagrant && vagrant up
+
+  vagrant-stop:
+    cmds:
+      - cd ./build/vagrant && vagrant halt
+
+  vagrant-ssh:
+    cmds:
+      - cd ./build/vagrant && vagrant ssh
+
+  vagrant-destroy:
+    cmds:
+      - cd ./build/vagrant && vagrant destroy

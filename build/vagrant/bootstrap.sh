@@ -31,4 +31,7 @@ sudo apt-get install -y --no-install-recommends docker-ce docker-ce-cli containe
 # Allow executing docker without sudo
 sudo usermod -aG docker ${USER}
 
+# Install Task as Make alternative
+sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+
 echo 'All set, rock on!'
